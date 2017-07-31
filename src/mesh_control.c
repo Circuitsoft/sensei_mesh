@@ -20,6 +20,11 @@ uint8_t mesh_control_get_hb_tx_power() {
   return m_config.hb_tx_power;
 }
 
+uint16_t mesh_control_get_radio_window_duration() {
+  return m_config.radio_window_duration;
+}
+
+
 void mesh_control_update_config(mesh_control_t *new_config) {
   rbc_mesh_txpower_t allowed_tx_power[] = {
     RBC_MESH_TXPOWER_0dBm,

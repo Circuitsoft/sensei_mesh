@@ -46,7 +46,4 @@ uint16_t get_clock_version();
 // Returns true if the clock has been synchronized within the last hour
 bool clock_is_synchronized();
 
-// Sets the radio window duration
-void set_radio_window_duration(uint16_t duration);
-
 #endif //__SCHEDULER_H_

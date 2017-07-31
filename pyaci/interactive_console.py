@@ -31,8 +31,9 @@ class Interactive(object):
         return self.acidev.serial.port
 
     #HCI commands
-    def Echo(self, Data):
-        self.acidev.write_aci_cmd(AciCommand.AciEcho(data=Data, length=(len(Data)+1)))
+    def Echo(self, str):
+        data = bytearray(str, 'utf-8')
+        self.acidev.write_aci_cmd(AciCommand.AciEcho(data=data, length=(len(data)+1)))
 
     def RadioReset(self):
         self.acidev.write_aci_cmd(AciCommand.AciRadioReset())
@@ -92,6 +93,10 @@ class Interactive(object):
     def setConfig(self, sensor_id, serial_enabled, mesh_channel, sleep_enabled):
         self.runCommand(sensei_cmd.SetConfig(sensor_id, serial_enabled, mesh_channel, sleep_enabled))
 
+    # wake_interval = seconds (default = 10)
+    # tx_power = one of [0, 4, -30, -20, -16, -12, -8, -4]
+    # ble_enabled = True/False
+    # radio_window_duration = ms (default = 900)
     def setMeshControl(self, wake_interval, tx_power, ble_enabled, radio_window_duration):
         power_levels = {
             0: 0x00,

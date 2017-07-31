@@ -6,14 +6,16 @@
 
 // Default wake interval is 10 seconds
 #define DEFAULT_WAKE_INTERVAL (10)
+
+// Default window is 900ms
 #define DEFAULT_RADIO_WINDOW_DURATION (900)
 
 typedef __packed_armcc struct
 {
-  uint16_t wake_interval;
+  uint16_t wake_interval; // Seconds
   uint8_t hb_tx_power;
   uint8_t enable_ble;  // Not used yet...
-  uint16_t radio_window_duration;
+  uint16_t radio_window_duration; // ms
 } __packed_gcc mesh_control_t;
 
 
@@ -25,6 +27,11 @@ uint16_t mesh_control_get_wake_interval();
 
 // Heartbeat tx power controls the tx power level of sent heartbeat packets
 uint8_t mesh_control_get_hb_tx_power();
+
+// Radio window duration is the total length of the window that the
+// radio is put into rx mode.  All heartbeat packets and mesh data transfer
+// happens within this window.
+uint16_t mesh_control_get_radio_window_duration();
 
 void mesh_control_update_config(mesh_control_t *new_config);
 
