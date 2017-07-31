@@ -29,6 +29,7 @@ static scheduler_state_t m_scheduler_state;
 static bool m_sleep_enabled = true;
 static prng_t m_rand;
 static uint32_t m_clock_second_start_counter_value;
+static uint16_t m_radio_window_duration;
 
 #define MS_TO_TICKS(MS) ((TICKS_PER_100ms * (MS)) / 100)
 #define TICKS_TO_MS(TICKS) (100 * (TICKS) / TICKS_PER_100ms)
@@ -97,7 +98,7 @@ static void delay_to_sleep() {
   uint32_t current_counter;
   app_timer_cnt_get(&current_counter);
   uint32_t elapsed_ticks_since_second_start = current_counter - m_clock_second_start_counter_value;
-  int32_t delay_ticks = MS_TO_TICKS(TOTAL_RADIO_WINDOW_MS) - elapsed_ticks_since_second_start;
+  int32_t delay_ticks = MS_TO_TICKS(m_radio_window_duration) - elapsed_ticks_since_second_start;
   if (delay_ticks > 5) {
     app_timer_start(m_offset_timer_ID, delay_ticks, NULL);
   } else {
@@ -159,6 +160,7 @@ void start_clock(uint16_t start_delay) {
 }
 
 void scheduler_init(bool sleep_enabled) {
+  m_radio_window_duration = DEFAULT_RADIO_WINDOW_DURATION;
   m_sleep_enabled = sleep_enabled;
   rand_prng_seed(&m_rand);
   m_scheduler_state = SCHEDULER_STATE_STOPPED;
@@ -212,4 +214,8 @@ uint16_t get_clock_version() {
 
 bool clock_is_synchronized() {
   return m_last_sync > 0; // && (m_current_time - m_last_sync) < (60 * 60);
+}
+
+void set_radio_window_duration(uint16_t duration) {
+  m_radio_window_duration = duration;
 }

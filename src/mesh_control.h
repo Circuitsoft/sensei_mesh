@@ -6,12 +6,14 @@
 
 // Default wake interval is 10 seconds
 #define DEFAULT_WAKE_INTERVAL (10)
+#define DEFAULT_RADIO_WINDOW_DURATION (900)
 
 typedef __packed_armcc struct
 {
   uint16_t wake_interval;
   uint8_t hb_tx_power;
   uint8_t enable_ble;  // Not used yet...
+  uint16_t radio_window_duration;
 } __packed_gcc mesh_control_t;
 
 

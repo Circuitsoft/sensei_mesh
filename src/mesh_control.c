@@ -9,6 +9,7 @@ void mesh_control_init() {
   m_config.wake_interval = DEFAULT_WAKE_INTERVAL;
   m_config.hb_tx_power = RBC_MESH_TXPOWER_Neg4dBm;
   m_config.enable_ble = 0;
+  m_config.radio_window_duration = DEFAULT_RADIO_WINDOW_DURATION;
 }
 
 uint16_t mesh_control_get_wake_interval() {

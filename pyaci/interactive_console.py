@@ -92,7 +92,7 @@ class Interactive(object):
     def setConfig(self, sensor_id, serial_enabled, mesh_channel, sleep_enabled):
         self.runCommand(sensei_cmd.SetConfig(sensor_id, serial_enabled, mesh_channel, sleep_enabled))
 
-    def setMeshControl(self, wake_interval, tx_power, ble_enabled):
+    def setMeshControl(self, wake_interval, tx_power, ble_enabled, radio_window_duration):
         power_levels = {
             0: 0x00,
             4: 0x04,
@@ -107,7 +107,7 @@ class Interactive(object):
         if tx_power == None:
             raise Exception("Bad tx power level specified: %s" % tx_power)
 
-        data = struct.pack("<HBB", wake_interval, power_code, ble_enabled)
+        data = struct.pack("<HBBH", wake_interval, power_code, ble_enabled, radio_window_duration)
         self.ValueSet(sensei_cmd.MESH_HANDLE_MESH_CONTROL, data)
 
     def getConfig(self):

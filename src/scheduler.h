@@ -21,7 +21,6 @@ typedef enum {
 
 #define MAX_EXPECTED_CLOCK_SKEW_MS (10)
 #define HEARTBEAT_WINDOW_MS (40)
-#define TOTAL_RADIO_WINDOW_MS (900)
 
 void scheduler_init(bool sleep_enabled);
 
@@ -44,8 +43,10 @@ int32_t get_uptime();
 // Local clock version
 uint16_t get_clock_version();
 
-
 // Returns true if the clock has been synchronized within the last hour
 bool clock_is_synchronized();
+
+// Sets the radio window duration
+void set_radio_window_duration(uint16_t duration);
 
 #endif //__SCHEDULER_H_
