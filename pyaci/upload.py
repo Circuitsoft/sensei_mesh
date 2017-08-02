@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 -u
 
 from argparse import ArgumentParser
 from aci import AciCommand
@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
     parser = ArgumentParser()
     parser.add_argument("-c", "--config", dest="config", help="Configuration file, e.g. ~/.sensei.yaml")
-    parser.add_argument("-d", "--dry-run", dest="dry_run", help="Dry run. Do not actually upload anything")
+    parser.add_argument("-d", "--dry-run", dest="dry_run", type=bool, default=False, help="Dry run. Do not actually upload anything")
     options = parser.parse_args()
 
     config_path = options.config or expanduser("~") + "/.sensei.yaml"

@@ -2,3 +2,4 @@ _build
 *.pyc
 *.log
 *.log~
+.ipynb_checkpoints
