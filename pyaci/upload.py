@@ -80,7 +80,9 @@ class Uploader(object):
 
     def restart_serial(self):
         if self.aci:
+            print("****************************" * 100)
             print("Restarting serial connection")
+            print("****************************" * 100)
             self.aci.stop()
         else:
             print("Starting serial connection")

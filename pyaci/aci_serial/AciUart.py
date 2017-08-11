@@ -4,6 +4,7 @@ import traceback
 import threading
 import collections
 from queue import *
+from time import sleep
 
 
 from serial import Serial
@@ -80,9 +81,17 @@ class AciUart(threading.Thread, AciDevice):
         self._write_lock = threading.Lock()
 
         logging.debug("log Opening port %s, baudrate %s, rtscts %s", port, baudrate, rtscts)
-        self.serial = Serial(port=port, baudrate=baudrate, rtscts=rtscts, timeout=0.1)
+        self.serial = Serial(port=port, baudrate=baudrate, rtscts=rtscts, timeout=0.1, dsrdtr=True)
 
         self.keep_running = True
+
+        self.serial.setDTR(False)
+        sleep(1)
+        # toss any data already received, see
+        # http://pyserial.sourceforge.net/pyserial_api.html#serial.Serial.flushInput
+        self.serial.flushInput()
+        self.serial.setDTR(True)
+
         self.start()
 
     def __del__(self):
