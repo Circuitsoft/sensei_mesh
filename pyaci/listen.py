@@ -12,10 +12,11 @@ def listen(serial_device):
     time.sleep(2)
     while True:
         event = aci.events_queue.get()
-        print(str.format("%.3f %s" %(time.time(), event)))
+        print("%.3f %s" % (time.time(), event))
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument("-d", "--device", dest="device", required=True, help="Serial device, e.g. /dev/cu.usbserial-DO00C2G2")
+    parser.add_argument("-d", "--device", dest="device", required=True,
+                        help="Serial device, e.g. /dev/cu.usbserial-DO00C2G2")
     options = parser.parse_args()
     listen(options.device)

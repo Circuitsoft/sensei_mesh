@@ -22,13 +22,17 @@ def configure_sensor(serial_device, sensor_id, serial_enabled, channel, sleep_en
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument("-d", "--device", dest="device", required=True, help="Serial device, e.g. /dev/cu.usbserial-DO00C2G2")
+    parser.add_argument("-d", "--device", dest="device", required=True,
+                        help="Serial device, e.g. /dev/cu.usbserial-DO00C2G2")
     parser.add_argument('id', type=int, help='the id to assign this sensor')
     parser.add_argument('--no-sleeping', dest='sleep_enabled', action='store_false')
     parser.set_defaults(sleep_enabled=True)
     parser.add_argument('--no-serial', dest='serial_enabled', action='store_false')
     parser.set_defaults(serial_enabled=True)
-    parser.add_argument('--channel', type=int, help='bluetooth channel of sensei network: should be 1-39 (one of 37,38,39 usually best)')
+    parser.add_argument('--channel', type=int,
+                        help='bluetooth channel of sensei network: should be 1-39 ' \
+                        + '(one of 37,38,39 usually best)')
     parser.set_defaults(channel=38)
     options = parser.parse_args()
-    configure_sensor(options.device, options.id, options.serial_enabled, options.channel, options.sleep_enabled)
+    configure_sensor(options.device, options.id, options.serial_enabled,
+                     options.channel, options.sleep_enabled)

@@ -62,9 +62,12 @@ class AciDevice(object):
             self.WriteData(cmd.serialize())
             retval = self.Wait(self)
             if retval == None:
-                logging.info('cmd %s, timeout waiting for event' % (cmd.__class__.__name__))
+                logging.info('cmd %s, timeout waiting for event',
+			     cmd.__class__.__name__)
         else:
-            logging.error('The command provided is not valid: %s\nIt must be an instance of the AciCommandPkt class (or one of its subclasses)', str(cmd))
+            logging.error('The command provided is not valid: %s\n' \
+			+ 'It must be an instance of the AciCommandPkt class ' \
+			+ '(or one of its subclasses)', str(cmd))
         return retval
 
 
@@ -80,7 +83,8 @@ class AciUart(threading.Thread, AciDevice):
 
         self._write_lock = threading.Lock()
 
-        logging.debug("log Opening port %s, baudrate %s, rtscts %s", port, baudrate, rtscts)
+        logging.debug("log Opening port %s, baudrate %s, rtscts %s",
+                      port, baudrate, rtscts)
         self.serial = Serial(port=port, baudrate=baudrate, rtscts=rtscts, timeout=0.1)
 
         self.keep_running = True
@@ -135,4 +139,5 @@ class AciUart(threading.Thread, AciDevice):
                 self.ProcessCommand(data)
 
     def __repr__(self):
-        return '%s(port="%s", baudrate=%s, device_name="%s")' % (self.__class__.__name__, self.serial.port, self.serial.baudrate, self.device_name)
+        return '%s(port="%s", baudrate=%s, device_name="%s")' % (self.__class__.__name__,
+                self.serial.port, self.serial.baudrate, self.device_name)

@@ -41,10 +41,12 @@ class Interactive(object):
         self.acidev.write_aci_cmd(AciCommand.AciAppCommand(data=data,length=len(data)+1))
 
     def Init(self, AccessAddress=0x8E89BED6, MinInterval=100, Channel=39):
-        self.acidev.write_aci_cmd(AciCommand.AciInit(access_address=AccessAddress, min_interval=MinInterval, channel=Channel))
+        self.acidev.write_aci_cmd(AciCommand.AciInit(access_address=AccessAddress,
+                                  min_interval=MinInterval, channel=Channel))
 
     def ValueSet(self, Handle, Data):
-        self.acidev.write_aci_cmd(AciCommand.AciValueSet(handle=Handle, data=Data, length=(len(Data)+3)))
+        self.acidev.write_aci_cmd(AciCommand.AciValueSet(handle=Handle,
+                                    data=Data, length=(len(Data)+3)))
 
     def ValueEnable(self, Handle):
         self.acidev.write_aci_cmd(AciCommand.AciValueEnable(handle=Handle))
@@ -62,10 +64,12 @@ class Interactive(object):
         self.acidev.write_aci_cmd(AciCommand.AciStop())
 
     def FlagSet(self, Handle, FlagIndex, FlagValue=True):
-        self.acidev.write_aci_cmd(AciCommand.AciFlagSet(handle=Handle, flag_index=FlagIndex, flag_value=FlagValue))
+        self.acidev.write_aci_cmd(AciCommand.AciFlagSet(handle=Handle,
+                                    flag_index=FlagIndex, flag_value=FlagValue))
 
     def FlagGet(self, Handle, FlagIndex):
-        self.acidev.write_aci_cmd(AciCommand.AciFlagGet(handle=Handle, flag_index=FlagIndex))
+        self.acidev.write_aci_cmd(AciCommand.AciFlagGet(handle=Handle,
+                                                        flag_index=FlagIndex))
 
     def DFUData(self, Data):
         self.acidev.write_aci_cmd(AciCommand.AciDfuData(data=Data, length=(len(Data)+1)))
@@ -90,7 +94,8 @@ class Interactive(object):
         self.runCommand(sensei_cmd.SetTime())
 
     def setConfig(self, sensor_id, serial_enabled, mesh_channel, sleep_enabled):
-        self.runCommand(sensei_cmd.SetConfig(sensor_id, serial_enabled, mesh_channel, sleep_enabled))
+        self.runCommand(sensei_cmd.SetConfig(sensor_id, serial_enabled,
+                                             mesh_channel, sleep_enabled))
 
     def setMeshControl(self, wake_interval, tx_power, ble_enabled):
         power_levels = {
@@ -136,7 +141,9 @@ def start_ipython(options):
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument("-d", "--device", dest="device", required=True, help="Device Communication port, e.g. COM216")
-    parser.add_argument("-b", "--baudrate", dest="baudrate", required=False, default='115200', help="Baud rate")
+    parser.add_argument("-d", "--device", dest="device", required=True,
+                        help="Device Communication port, e.g. COM216")
+    parser.add_argument("-b", "--baudrate", dest="baudrate", required=False,
+                        default='115200', help="Baud rate")
     options = parser.parse_args()
     start_ipython(options)

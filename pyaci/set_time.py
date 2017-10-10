@@ -17,6 +17,7 @@ def set_time(serial_device):
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument("-d", "--device", dest="device", required=True, help="Serial device, e.g. /dev/cu.usbserial-DO00C2G2")
+    parser.add_argument("-d", "--device", dest="device", required=True,
+                        help="Serial device, e.g. /dev/cu.usbserial-DO00C2G2")
     options = parser.parse_args()
     set_time(options.device)
