@@ -168,6 +168,7 @@ if __name__ == '__main__':
     parser.add_argument("-c", "--config", dest="config",
                         help="Configuration file, e.g. ~/.sensei.yaml")
     parser.add_argument("-d", "--dry-run", dest="dry_run",
+                        action='store_const', const=True,
                         help="Dry run. Do not actually upload anything")
     options = parser.parse_args()
 
