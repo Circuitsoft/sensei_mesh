@@ -57,14 +57,15 @@ class AciDevice(object):
                 logging.error('traceback: %s', traceback.format_exc())
 
     def write_aci_cmd(self, cmd):
+        retval = None
         if isinstance(cmd,AciCommand.AciCommandPkt):
             self.WriteData(cmd.serialize())
             retval = self.Wait(self)
-            print("Events received: %s" %retval)
             if retval == None:
                 logging.info('cmd %s, timeout waiting for event' % (cmd.__class__.__name__))
         else:
             logging.error('The command provided is not valid: %s\nIt must be an instance of the AciCommandPkt class (or one of its subclasses)', str(cmd))
+        return retval
 
 
 

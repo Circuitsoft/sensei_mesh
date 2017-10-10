@@ -53,7 +53,9 @@ class Uploader(object):
 
     def run_app_command(self, command):
         data = command.serialize()
-        return self.aci.write_aci_cmd(AciCommand.AciAppCommand(data=data,length=len(data)+1))
+        retval = self.aci.write_aci_cmd(AciCommand.AciAppCommand(data=data,length=len(data)+1))
+        print("Events received: %s" % retval)
+        return retval
 
     def sync_time(self):
         self.last_time_sync = time.time()
