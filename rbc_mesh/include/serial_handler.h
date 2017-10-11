@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _SERIAL_HANDLER_H__
 #define _SERIAL_HANDLER_H__
 
-#define SERIAL_DATA_MAX_LEN  (36)
+#define SERIAL_DATA_MAX_LEN  (72)
 
 #include "serial_evt.h"
 #include "serial_command.h"

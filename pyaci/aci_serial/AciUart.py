@@ -97,16 +97,29 @@ class AciUart(threading.Thread, AciDevice):
         self.keep_running = False
 
     def get_packet_from_uart(self):
-        tmp = bytearray([])
+        tmp = None
+        byte_is_escape = False
         while self.keep_running:
-            tmp += bytearray(self.serial.read())
-            tmp_len = len(tmp)
-            if tmp_len > 0:
-                pkt_len = tmp[0]
-                if tmp_len > pkt_len:
-                    data = tmp[:pkt_len+1]
-                    yield data
-                    tmp = tmp[pkt_len+1:]
+            byte = self.serial.read(1)
+            if len(byte):
+                byte = byte[0]
+                if (byte & 0xf0) == 0x70:
+                    # Framed byte
+                    if byte == 0x71:
+                        tmp = b''
+                        byte_is_escape = False
+                    if byte == 0x72:
+                        byte_is_escape = True
+                    if tmp and byte == 0x73:
+                        yield tmp
+                        tmp = None
+                else:
+                    if tmp != None:
+                        if byte_is_escape:
+                            tmp += bytearray([byte ^ 0x20])
+                            byte_is_escape = False
+                        else:
+                            tmp += bytearray([byte])
 
     def run(self):
         for pkt in self.get_packet_from_uart():
@@ -133,9 +146,16 @@ class AciUart(threading.Thread, AciDevice):
         logging.debug("exited read event")
 
     def WriteData(self, data):
+        data = bytearray(data)
         with self._write_lock:
             if self.keep_running:
-                self.serial.write(bytearray(data))
+                self.serial.write(bytearray([0x71]))
+                for b in data:
+                    if (b & 0xf0) == 0x70:
+                        self.serial.write(bytearray([0x72]))
+                        b = b ^ 0x20
+                    self.serial.write(bytearray([b]))
+                self.serial.write(bytearray([0x73]))
                 self.ProcessCommand(data)
 
     def __repr__(self):
