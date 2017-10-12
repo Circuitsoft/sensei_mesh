@@ -13,20 +13,27 @@ USE_DFU              ?= "no"
 # Define relative paths to SDK components
 #------------------------------------------------------------------------------
 
-SDK_BASE      := /Users/pete/dev/nrf_sdk
+ifeq ($(shell uname),Linux)
+	RFD_LOADER    = $(SIMBLEE_BASE)/RFDLoader_linux
+	ARDUINO_BASE  := $(HOME)/.arduino15
+	SERIAL_PORT   := /dev/ttyUSB0
+else
+	RFD_LOADER    = $(SIMBLEE_BASE)/RFDLoader_osx
+	ARDUINO_BASE  := $(HOME)/Library/Arduino15
+	#SERIAL_PORT  := /dev/cu.usbserial-DN00CSZ7  # left
+	SERIAL_PORT   := /dev/cu.usbserial-DN00D34P  # right
+	#SERIAL_PORT  := /dev/cu.usbserial-A105RB12
+	#SERIAL_PORT  := /dev/cu.usbserial-FTZ86FTC  # tag-connect
+	#SERIAL_PORT  := /dev/cu.usbserial-DO00C2G2  # Breadboard setup
+endif
+
+SDK_BASE      := ../nRF51_SDK_8.1.0_b6ed55f
 COMPONENTS    := $(SDK_BASE)/components
 TEMPLATE_PATH := $(COMPONENTS)/toolchain/gcc
-SIMBLEE_BASE  := /Users/pete/Library/Arduino15/packages/Simblee/hardware/Simblee/1.1.2
-RBC_MESH  		:= rbc_mesh
-
+SIMBLEE_BASE  := $(ARDUINO_BASE)/packages/Simblee/hardware/Simblee/1.1.2
+RBC_MESH      := rbc_mesh
 
 LINKER_SCRIPT := $(SIMBLEE_BASE)/variants/Simblee/linker_scripts/gcc/Simblee.ld
-RFD_LOADER 		:= $(SIMBLEE_BASE)/RFDLoader_osx
-#SERIAL_PORT 	:= /dev/cu.usbserial-DN00CSZ7  # left
-SERIAL_PORT 	:= /dev/cu.usbserial-DN00D34P  # right
-#SERIAL_PORT 	:= /dev/cu.usbserial-A105RB12
-#SERIAL_PORT   := /dev/cu.usbserial-FTZ86FTC  # tag-connect
-#SERIAL_PORT   := /dev/cu.usbserial-DO00C2G2  # Breadboard setup
 
 ifeq ($(USE_RBC_MESH_SERIAL), "yes")
 	SERIAL_STRING := "_serial"
@@ -42,9 +49,7 @@ endif
 
 OUTPUT_NAME := rbc_mesh$(SERIAL_STRING)$(DFU_STRING)_$(TARGET_BOARD)
 
-
-GNU_INSTALL_ROOT := /usr/local
-GNU_VERSION := 4.9.3
+GNU_INSTALL_ROOT := $(ARDUINO_BASE)/packages/Simblee/tools/arm-none-eabi-gcc/4.8.3-2014q1
 GNU_PREFIX := arm-none-eabi
 
 #------------------------------------------------------------------------------
@@ -72,6 +77,7 @@ endif
 
 # Toolchain commands
 CC       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc"
+CXX      := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-g++"
 AS       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-as"
 AR       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ar" -r
 LD       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ld"
@@ -115,7 +121,6 @@ ifeq ($(USE_DFU), "yes")
 	C_SOURCE_FILES += $(RBC_MESH)/src/nrf_flash.c
 endif
 
-
 C_SOURCE_FILES += $(RBC_MESH)/src/radio_control.c
 C_SOURCE_FILES += $(RBC_MESH)/src/rbc_mesh.c
 C_SOURCE_FILES += $(RBC_MESH)/src/timer.c
@@ -145,7 +150,6 @@ LIBS += -lSimbleeSystem -lSimblee -lSimbleeBLE -lSimbleeGZLL -lSimbleeForMobile 
 vpath %.c $(C_PATHS)
 
 ARDUINO_CORE = arduino_core/core.a
-
 
 # includes common to all targets
 
@@ -177,11 +181,11 @@ INC_PATHS += -I$(COMPONENTS)/softdevice/s110/headers
 INC_PATHS += -I$(COMPONENTS)/drivers_nrf/hal
 INC_PATHS += -I$(COMPONENTS)/drivers_nrf/spi_slave
 
-CXX_INC_PATHS += -I/Users/pete/Library/Arduino15/packages/Simblee/hardware/Simblee/1.1.2/cores/arduino
-CXX_INC_PATHS += -I/Users/pete/Library/Arduino15/packages/Simblee/hardware/Simblee/1.1.2/variants/Simblee
-CXX_INC_PATHS += -I/Users/pete/Library/Arduino15/packages/Simblee/hardware/Simblee/1.1.2/system/Simblee
-CXX_INC_PATHS += -I/Users/pete/Library/Arduino15/packages/Simblee/hardware/Simblee/1.1.2/system/Simblee/include
-CXX_INC_PATHS += -I/Users/pete/Library/Arduino15/packages/Simblee/hardware/Simblee/1.1.2/system/CMSIS/CMSIS/Include
+CXX_INC_PATHS += -I$(SIMBLEE_BASE)/cores/arduino
+CXX_INC_PATHS += -I$(SIMBLEE_BASE)/variants/Simblee
+CXX_INC_PATHS += -I$(SIMBLEE_BASE)/system/Simblee
+CXX_INC_PATHS += -I$(SIMBLEE_BASE)/system/Simblee/include
+CXX_INC_PATHS += -I$(SIMBLEE_BASE)/system/CMSIS/CMSIS/Include
 
 OBJECT_DIRECTORY = _build
 LISTING_DIRECTORY = $(OBJECT_DIRECTORY)
@@ -213,16 +217,12 @@ CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin
 
-
 # -c -g -Os -w -std=gnu++11 -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -fno-builtin -MMD -mcpu=cortex-m0
 # -DF_CPU=16000000 -DARDUINO=10801 -D__PROJECT__="ledtest.ino" -mthumb -D__Simblee__
 
 CXXFLAGS += -g -Os -w -std=gnu++11 -ffunction-sections -fdata-sections -fno-rtti
 CXXFLAGS += -fno-exceptions -fno-builtin -MMD -mcpu=cortex-m0 -DF_CPU=16000000
 CXXFLAGS += -DARDUINO=10801 -mthumb -D__Simblee__
-
-#CXX := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-g++"
-CXX := "/Users/pete/Library/Arduino15/packages/Simblee/tools/arm-none-eabi-gcc/4.8.3-2014q1/bin/arm-none-eabi-g++"
 
 LDFLAGS += -Xlinker -Map=$(LISTING_DIRECTORY)/$(OUTPUT_NAME).map
 LDFLAGS += -mthumb -mabi=aapcs -L $(TEMPLATE_PATH) -T$(LINKER_SCRIPT)

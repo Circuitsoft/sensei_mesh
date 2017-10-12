@@ -12,8 +12,7 @@ import sensei_cmd
 from sensei import *
 import datetime
 import yaml
-from os.path import expanduser
-import os.path
+import os
 
 class Uploader(object):
     # Synchronize once every minute
@@ -27,13 +26,14 @@ class Uploader(object):
         self.aci = None
         api_url = sensei_config["server"]["url"] + 'api/v1/'
         self.restart_serial()
-        self.api = Api(api_url, sensei_config["server"]["username"], sensei_config["server"]["password"])
+        self.api = Api(api_url, sensei_config["server"]["username"],
+                                sensei_config["server"]["password"])
         self.classroom_id = sensei_config["classroom_id"]
 
     def handle_heartbeat(self, hb):
-        print(str.format("handling heartbeat: %s" %(hb)))
+        print("handling heartbeat: %s" % hb)
         if hb.epoch_seconds != hb.received_at or abs(time.time() - hb.epoch_seconds) > 5:
-          print(str.format("Sensor %d clock offset detected; issuing sync_time." %(hb.sensor_id)))
+          print("Sensor %d clock offset detected; issuing sync_time." % hb.sensor_id)
           self.sync_time()
 
     def get_sensor_updates(self):
@@ -42,7 +42,7 @@ class Uploader(object):
             try:
                 evt = self.aci.events_queue.get_nowait()
                 self.last_event = time.time()
-                print(str.format("evt = %s" %(evt)))
+                print("evt = %s" % evt)
                 if isinstance(evt, AciEvent.AciEventNew) and evt.is_sensor_update():
                     updates.append(evt.sensor_values())
                 elif isinstance(evt, AciEvent.AciEventAppEvt) and evt.is_heartbeat():
@@ -53,7 +53,10 @@ class Uploader(object):
 
     def run_app_command(self, command):
         data = command.serialize()
-        return self.aci.write_aci_cmd(AciCommand.AciAppCommand(data=data,length=len(data)+1))
+        retval = self.aci.write_aci_cmd(AciCommand.AciAppCommand(data=data,
+                                                                 length=len(data)+1))
+        print("Events received: %s" % retval)
+        return retval
 
     def sync_time(self):
         self.last_time_sync = time.time()
@@ -69,7 +72,8 @@ class Uploader(object):
         for remote_id, rssi in zip(update.proximity_ids, update.proximity_rssi):
             ob_time = datetime.datetime.utcfromtimestamp(update.valid_time)
             if remote_id > 0 and rssi > 0:
-                obs.append(RadioObservation(self.classroom_id, update.sensor_id, remote_id, ob_time, -rssi))
+                obs.append(RadioObservation(self.classroom_id, update.sensor_id,
+                                            remote_id, ob_time, -rssi))
         return obs
 
     def accelerometer_measurement_from_update(self, update):
@@ -89,26 +93,33 @@ class Uploader(object):
         self.aci = AciUart.AciUart(port=device, baudrate=115200)
         self.last_event = time.time()
 
-    def handle_exceptions_with_sleep_retry(self, callable, sleep_duration, num_retries, description):
+    def handle_exceptions_with_sleep_retry(self, callable, sleep_duration,
+                                           num_retries, description):
         while (num_retries > 0):
             try:
                 return callable()
             except Exception as e:
-                print(str.format("Exception while %s: %s" %(description, repr(e))))
+                print("Exception while %s: %r" % (description, e))
                 num_retries = num_retries - 1
                 time.sleep(sleep_duration)
 
 
     def upload_radio_observations(self, obs):
-        self.handle_exceptions_with_sleep_retry(lambda: self.api.upload_radio_observations(obs), 1, 3, "uploading radio obs")
+        self.handle_exceptions_with_sleep_retry(
+            lambda: self.api.upload_radio_observations(obs),
+            1, 3, "uploading radio obs")
 
     def upload_accelerometer_observations(self, obs):
-        self.handle_exceptions_with_sleep_retry(lambda: self.api.upload_accelerometer_observations(obs), 1, 3, "uploading accelerometer obs")
+        self.handle_exceptions_with_sleep_retry(
+            lambda: self.api.upload_accelerometer_observations(obs),
+            1, 3, "uploading accelerometer obs")
 
     def upload_accelerometer_event(self, event_type, sensor_id, valid_time):
         ob_time = datetime.datetime.utcfromtimestamp(valid_time)
         events = [AccelerometerEvent(self.classroom_id, sensor_id, ob_time, event_type)]
-        self.handle_exceptions_with_sleep_retry(lambda: self.api.upload_accelerometer_events(events), 1, 3, "uploading accelerometer obs")
+        self.handle_exceptions_with_sleep_retry(
+            lambda: self.api.upload_accelerometer_events(events),
+            1, 3, "uploading accelerometer obs")
 
     def handle_updates_from_serial(self, updates):
         if not self.options.dry_run:
@@ -122,7 +133,8 @@ class Uploader(object):
                 if ob:
                     accelerometer_obs.append(ob)
                 if update.status & SensorValues.STATUS_JOSTLE_FLAG:
-                    self.upload_accelerometer_event('jostle', update.sensor_id, update.valid_time)
+                    self.upload_accelerometer_event('jostle', update.sensor_id,
+                                                              update.valid_time)
                     print("Jostle from %d" %(update.sensor_id))
             if len(accelerometer_obs) > 0:
                 self.upload_accelerometer_observations(accelerometer_obs)
@@ -153,11 +165,14 @@ class Uploader(object):
 if __name__ == '__main__':
 
     parser = ArgumentParser()
-    parser.add_argument("-c", "--config", dest="config", help="Configuration file, e.g. ~/.sensei.yaml")
-    parser.add_argument("-d", "--dry-run", dest="dry_run", help="Dry run. Do not actually upload anything")
+    parser.add_argument("-c", "--config", dest="config",
+                        help="Configuration file, e.g. ~/.sensei.yaml")
+    parser.add_argument("-d", "--dry-run", dest="dry_run",
+                        action='store_const', const=True,
+                        help="Dry run. Do not actually upload anything")
     options = parser.parse_args()
 
-    config_path = options.config or expanduser("~") + "/.sensei.yaml"
+    config_path = options.config or os.path.join(os.path.expanduser("~"), ".sensei.yaml")
     if os.path.isfile(config_path):
         with open(config_path, 'r') as stream:
             try:
@@ -167,5 +182,5 @@ if __name__ == '__main__':
             except yaml.YAMLError as exc:
                 print(exc)
     else:
-        print(str.format("Please configure settings in %s" %(config_path)))
+        print("Please configure settings in %s" % config_path)
         exit(-1)

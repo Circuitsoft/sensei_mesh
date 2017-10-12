@@ -86,8 +86,10 @@ static void do_transmit(void* p_context)
 {
     if (fifo_pop(&m_tx_fifo, &m_tx_buffer) == NRF_SUCCESS)
     {
-        m_tx_len = ((serial_evt_t*) m_tx_buffer.buffer)->length; /* should be serial_evt_t->length+1, but will be decremented after the push below, so we don't bother */
-        mp_tx_ptr = &m_tx_buffer.buffer[0];
+        /* should be serial_evt_t->length+1, but will be decremented after the
+         * push below, so we don't bother */
+        m_tx_len = *m_tx_buffer.buffer;
+        mp_tx_ptr = m_tx_buffer.buffer + 1;
 
         NRF_UART0->EVENTS_TXDRDY = 0;
         NRF_UART0->TASKS_STARTTX = 1;
@@ -120,41 +122,61 @@ static void char_rx(uint8_t c)
 {
     static serial_data_t rx_buf = {0};
     static uint8_t* pp = rx_buf.buffer;
+    static uint8_t in_packet = 0,
+                   byte_is_escape = 0;
 
-    *(pp++) = c;
-
-    uint32_t len = (uint32_t)(pp - rx_buf.buffer);
-    if (len >= sizeof(rx_buf) || (len > 1 && len >= rx_buf.buffer[0] + 1)) /* end of command */
+    if ((c & 0xf0) == 0x70)
     {
-        if (fifo_push(&m_rx_fifo, &rx_buf) != NRF_SUCCESS)
+        switch(c)
         {
-            /* respond inline, queue was full */
-            serial_evt_t fail_evt;
-            fail_evt.length = 3;
-            fail_evt.opcode = SERIAL_EVT_OPCODE_CMD_RSP;
-            fail_evt.params.cmd_rsp.command_opcode = ((serial_cmd_t*) rx_buf.buffer)->opcode;
-            fail_evt.params.cmd_rsp.status = ACI_STATUS_ERROR_BUSY;
-            serial_handler_event_send(&fail_evt);
-        }
-        else
-        {
+            case 0x71:
+                in_packet = 255;
+                byte_is_escape = 0;
+                pp = rx_buf.buffer;
+                break;
+            case 0x72:
+                byte_is_escape = 255;
+                break;
+            case 0x73:
+                in_packet = 0;
+                if (fifo_push(&m_rx_fifo, &rx_buf) != NRF_SUCCESS)
+                {
+                    /* respond inline, queue was full */
+                    serial_evt_t fail_evt;
+                    fail_evt.length = 3;
+                    fail_evt.opcode = SERIAL_EVT_OPCODE_CMD_RSP;
+                    fail_evt.params.cmd_rsp.command_opcode = ((serial_cmd_t*) rx_buf.buffer)->opcode;
+                    fail_evt.params.cmd_rsp.status = ACI_STATUS_ERROR_BUSY;
+                    serial_handler_event_send(&fail_evt);
+                }
+                else
+                {
 #ifdef BOOTLOADER
-            NVIC_SetPendingIRQ(SWI2_IRQn);
+                    NVIC_SetPendingIRQ(SWI2_IRQn);
 #else
-            async_event_t async_evt;
-            async_evt.type = EVENT_TYPE_GENERIC;
-            async_evt.callback.generic.cb = mesh_aci_command_check_cb;
-            async_evt.callback.generic.p_context = NULL;
-            event_handler_push(&async_evt);
+                    async_event_t async_evt;
+                    async_evt.type = EVENT_TYPE_GENERIC;
+                    async_evt.callback.generic.cb = mesh_aci_command_check_cb;
+                    async_evt.callback.generic.p_context = NULL;
+                    event_handler_push(&async_evt);
 #endif
-        }
+                }
 
-        if (fifo_is_full(&m_rx_fifo))
-        {
-            m_serial_state = SERIAL_STATE_WAIT_FOR_QUEUE;
-            NRF_UART0->TASKS_STOPRX = 1;
+                if (fifo_is_full(&m_rx_fifo))
+                {
+                    m_serial_state = SERIAL_STATE_WAIT_FOR_QUEUE;
+                    NRF_UART0->TASKS_STOPRX = 1;
+                }
+                break;
         }
-        pp = rx_buf.buffer;
+    }
+    else if (in_packet)
+    {
+        if (byte_is_escape)
+            *(pp++) = c ^ 0x20;
+        else
+            *(pp++) = c;
+        byte_is_escape = 0;
     }
 }
 
@@ -309,7 +331,22 @@ bool serial_handler_event_send(serial_evt_t* evt)
 
     serial_data_t raw_data;
     raw_data.status_byte = 0;
-    memcpy(raw_data.buffer, evt, evt->length + 1);
+    uint8_t *buf = raw_data.buffer + 1;
+    uint8_t *src = (uint8_t*)evt;
+    uint8_t *end = src + evt->length + 1;
+    *(buf++) = 0x71;
+    while (src < end)
+    {
+        if ((*src & 0xf0) == 0x70)
+        {
+            *(buf++) = 0x72;
+            *(buf++) = *(src++) ^ 0x20;
+        }
+        else
+            *(buf++) = *(src++);
+    }
+    *(buf++) = 0x73;
+    *raw_data.buffer = (buf - raw_data.buffer) - 2;
     fifo_push(&m_tx_fifo, &raw_data);
 
     if (m_serial_state == SERIAL_STATE_IDLE)
