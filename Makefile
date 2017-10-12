@@ -158,9 +158,6 @@ INC_PATHS += -I$(RBC_MESH)
 INC_PATHS += -I$(RBC_MESH)/include
 INC_PATHS += -Ibsp
 INC_PATHS += -I../../../RTT
-INC_PATHS += -I$(SIMBLEE_BASE)/cores/arduino
-INC_PATHS += -I$(SIMBLEE_BASE)/system/Simblee
-INC_PATHS += -I$(SIMBLEE_BASE)/variants/Simblee
 
 INC_PATHS += -I$(COMPONENTS)/softdevice/s110/headers
 INC_PATHS += -I$(COMPONENTS)/softdevice/common/softdevice_handler
@@ -177,7 +174,6 @@ INC_PATHS += -I$(COMPONENTS)/drivers_nrf/gpiote
 INC_PATHS += -I$(COMPONENTS)/toolchain/gcc
 INC_PATHS += -I$(COMPONENTS)/toolchain
 INC_PATHS += -I$(COMPONENTS)/device
-INC_PATHS += -I$(COMPONENTS)/softdevice/s110/headers
 INC_PATHS += -I$(COMPONENTS)/drivers_nrf/hal
 INC_PATHS += -I$(COMPONENTS)/drivers_nrf/spi_slave
 
