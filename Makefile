@@ -4,7 +4,7 @@
 # Selectable build options
 #------------------------------------------------------------------------------
 
-TARGET_BOARD         ?= BOARD_RFD77201
+TARGET_BOARD         ?= BOARD_LESSON_TRACKER
 #TARGET_BOARD         ?= BOARD_SHOE_SENSOR
 
 USE_DFU              ?= no
@@ -14,11 +14,9 @@ USE_DFU              ?= no
 #------------------------------------------------------------------------------
 
 ifeq ($(shell uname),Linux)
-	RFD_LOADER    = $(SIMBLEE_BASE)/RFDLoader_linux
 	ARDUINO_BASE  := $(HOME)/.arduino15
 	SERIAL_PORT   := /dev/ttyUSB0
 else
-	RFD_LOADER    = $(SIMBLEE_BASE)/RFDLoader_osx
 	ARDUINO_BASE  := $(HOME)/Library/Arduino15
 	#SERIAL_PORT  := /dev/cu.usbserial-DN00CSZ7  # left
 	SERIAL_PORT   := /dev/cu.usbserial-DN00D34P  # right
@@ -27,13 +25,19 @@ else
 	#SERIAL_PORT  := /dev/cu.usbserial-DO00C2G2  # Breadboard setup
 endif
 
+SOFTDEVICE    := s110
+CHIP          := ac
+
 SDK_BASE      := ../nRF51_SDK_8.1.0_b6ed55f
 COMPONENTS    := $(SDK_BASE)/components
 TEMPLATE_PATH := $(COMPONENTS)/toolchain/gcc
-SIMBLEE_BASE  := $(ARDUINO_BASE)/packages/Simblee/hardware/Simblee/1.1.2
 RBC_MESH      := rbc_mesh
+NRF_LOADER    := nrfjprog
 
-LINKER_SCRIPT := $(SIMBLEE_BASE)/variants/Simblee/linker_scripts/gcc/Simblee.ld
+LINKER_SCRIPT := $(COMPONENTS)/softdevice/$(SOFTDEVICE)/toolchain/armgcc/*$(CHIP).ld
+SOFTDEVICE_HEX:= $(COMPONENTS)/softdevice/$(SOFTDEVICE)/hex/*.hex
+
+LINKER_SCRIPT := $(shell echo $(LINKER_SCRIPT))
 
 ifeq ($(USE_RBC_MESH_SERIAL),yes)
 	SERIAL_STRING := _serial
@@ -101,10 +105,9 @@ remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-ou
 C_SOURCE_FILES += src/main.c src/config.c src/sensor.c src/app_cmd.c \
  	src/scheduler.c src/proximity.c src/heartbeat.c src/battery.c src/shoe_accel.c \
 	src/app_evt.c src/mesh_control.c bsp/bsp.c src/i2c.c src/jostle_detect.c
-C_SOURCE_FILES += $(COMPONENTS)/libraries/timer/app_timer.c
-
-CXX_SOURCE_FILES += $(SIMBLEE_BASE)/libraries/SimbleeBLE/SimbleeBLE.cpp
-CXX_SOURCE_FILES += $(SIMBLEE_BASE)/variants/Simblee/variant.cpp
+C_SOURCE_FILES += $(COMPONENTS)/libraries/timer/app_timer.c \
+	$(COMPONENTS)/drivers_nrf/pstorage/pstorage.c \
+	$(COMPONENTS)/libraries/util/app_error.c
 
 CFLAGS += -DRBC_MESH_SERIAL=1 -DBSP_SIMPLE
 C_SOURCE_FILES += $(RBC_MESH)/src/serial_handler_uart.c
@@ -144,12 +147,7 @@ C_SOURCE_FILES += $(COMPONENTS)/drivers_nrf/gpiote/nrf_drv_gpiote.c
 C_SOURCE_FILES += $(COMPONENTS)/drivers_nrf/common/nrf_drv_common.c
 
 # assembly files common to all targets
-#ASM_SOURCE_FILES  += $(COMPONENTS)/toolchain/gcc/gcc_startup_nrf51.s
-LDFLAGS += -L$(SIMBLEE_BASE)/variants/Simblee
-LIBS += -lSimbleeSystem -lSimblee -lSimbleeBLE -lSimbleeGZLL -lSimbleeForMobile -lSimbleeCOM
-vpath %.c $(C_PATHS)
-
-ARDUINO_CORE = arduino_core/core.a
+ASM_SOURCE_FILES  += $(TEMPLATE_PATH)/gcc_startup_nrf51.s
 
 # includes common to all targets
 
@@ -159,7 +157,7 @@ INC_PATHS += -I$(RBC_MESH)/include
 INC_PATHS += -Ibsp
 INC_PATHS += -I../../../RTT
 
-INC_PATHS += -I$(COMPONENTS)/softdevice/s110/headers
+INC_PATHS += -I$(COMPONENTS)/softdevice/$(SOFTDEVICE)/headers
 INC_PATHS += -I$(COMPONENTS)/softdevice/common/softdevice_handler
 INC_PATHS += -I$(COMPONENTS)/toolchain/gcc
 INC_PATHS += -I$(COMPONENTS)/libraries/util
@@ -176,12 +174,6 @@ INC_PATHS += -I$(COMPONENTS)/toolchain
 INC_PATHS += -I$(COMPONENTS)/device
 INC_PATHS += -I$(COMPONENTS)/drivers_nrf/hal
 INC_PATHS += -I$(COMPONENTS)/drivers_nrf/spi_slave
-
-CXX_INC_PATHS += -I$(SIMBLEE_BASE)/cores/arduino
-CXX_INC_PATHS += -I$(SIMBLEE_BASE)/variants/Simblee
-CXX_INC_PATHS += -I$(SIMBLEE_BASE)/system/Simblee
-CXX_INC_PATHS += -I$(SIMBLEE_BASE)/system/Simblee/include
-CXX_INC_PATHS += -I$(SIMBLEE_BASE)/system/CMSIS/CMSIS/Include
 
 OBJECT_DIRECTORY = _build
 LISTING_DIRECTORY = $(OBJECT_DIRECTORY)
@@ -201,7 +193,7 @@ endif
 CFLAGS += $(DEBUG_FLAGS)
 CFLAGS += -D NRF51
 CFLAGS += -D BLE_STACK_SUPPORT_REQD
-CFLAGS += -D S110
+CFLAGS += -D $(shell echo $(SOFTDEVICE) | tr '[a-z]' '[A-Z]')
 CFLAGS += -D SOFTDEVICE_PRESENT
 CFLAGS += -D $(TARGET_BOARD)
 CFLAGS += -mcpu=cortex-m0
@@ -256,7 +248,7 @@ vpath %.c $(C_PATHS)
 vpath %.cpp $(CXX_PATHS)
 vpath %.s $(ASM_PATHS)
 
-OBJECTS = $(CXX_OBJECTS) $(C_OBJECTS) $(ASM_OBJECTS) $(ARDUINO_CORE)
+OBJECTS = $(CXX_OBJECTS) $(C_OBJECTS) $(ASM_OBJECTS)
 
 all: $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo Linking target: $(OUTPUT_NAME).elf
@@ -328,16 +320,22 @@ echosize:
 	$(NO_ECHO)$(SIZE) $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_NAME).elf
 	-@echo ""
 
-.PHONY: install
+.PHONY: install install_softdevice erase clean
 install: all
 	@echo Installing: $(OUTPUT_NAME).hex
-	$(NO_ECHO)$(RFD_LOADER) $(SERIAL_PORT) $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_NAME).hex
+	$(NO_ECHO)$(NRF_LOADER) -f UNKNOWN -c 400 --program $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_NAME).hex
+	$(NO_ECHO)$(NRF_LOADER) -f UNKNOWN -c 400 -r
+
+install_softdevice:
+	@echo Installing $(SOFTDEVICE_HEX)
+	$(NO_ECHO)$(NRF_LOADER) -f UNKNOWN -c 400 --program $(SOFTDEVICE_HEX)
+
+erase:
+	@echo Erasing Flash
+	$(NO_ECHO)$(NRF_LOADER) -f UNKNOWN -c 400 -e
 
 clean:
 	$(RM) $(BUILD_DIRECTORIES)
-
-cleanobj:
-	$(RM) $(BUILD_DIRECTORIES)/*.o
 
 .PHONY: program
 program: all install

@@ -20,7 +20,7 @@ Program an area sensor with id 3, turning off serial for power savings:
 
 Program a listening device that doesn't sleep, and listens all the time.
 
-`make program SERIAL_PORT=/dev/cu.usbserial-DN00CSZ7 SENSOR_CONFIGURATION_OPTIONS="--no-sleep" TARGET_BOARD=BOARD_RFD77201 SENSOR_ID=51`
+`make program SERIAL_PORT=/dev/cu.usbserial-DN00CSZ7 SENSOR_CONFIGURATION_OPTIONS="--no-sleep" TARGET_BOARD=BOARD_LESSON_TRACKER SENSOR_ID=51`
 
 Program a master clock device that doesn't sleep, listens all the time, and broadcasts its clock signal at full power.
 
