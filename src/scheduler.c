@@ -40,11 +40,11 @@ static void delay_to_heartbeat();
 static uint8_t debug_counter;
 static uint8_t debug_register[DEBUG_REGISTER_SIZE];
 
-static void add_value_to_debug_register(uint8_t value) {
+static void __attribute__((unused)) add_value_to_debug_register(uint8_t value) {
   debug_register[debug_counter % DEBUG_REGISTER_SIZE] = value;
   debug_counter++;
 }
-static void report_debug_register() {
+static void __attribute__((unused)) report_debug_register() {
   rbc_mesh_value_set(DEBUG_REGISTER_HANDLE, debug_register, DEBUG_REGISTER_SIZE);
 }
 
