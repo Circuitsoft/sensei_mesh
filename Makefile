@@ -7,7 +7,7 @@
 TARGET_BOARD         ?= BOARD_RFD77201
 #TARGET_BOARD         ?= BOARD_SHOE_SENSOR
 
-USE_DFU              ?= "no"
+USE_DFU              ?= no
 
 #------------------------------------------------------------------------------
 # Define relative paths to SDK components
@@ -35,16 +35,16 @@ RBC_MESH      := rbc_mesh
 
 LINKER_SCRIPT := $(SIMBLEE_BASE)/variants/Simblee/linker_scripts/gcc/Simblee.ld
 
-ifeq ($(USE_RBC_MESH_SERIAL), "yes")
-	SERIAL_STRING := "_serial"
+ifeq ($(USE_RBC_MESH_SERIAL),yes)
+	SERIAL_STRING := _serial
 else
-	SERIAL_STRING := ""
+	SERIAL_STRING :=
 endif
 
-ifeq ($(USE_DFU), "yes")
-	DFU_STRING="_dfu"
+ifeq ($(USE_DFU),yes)
+	DFU_STRING=_dfu
 else
-	DFU_STRING=""
+	DFU_STRING=
 endif
 
 OUTPUT_NAME := rbc_mesh$(SERIAL_STRING)$(DFU_STRING)_$(TARGET_BOARD)
@@ -63,7 +63,7 @@ MAKEFILE_NAME := $(MAKEFILE_LIST)
 MAKEFILE_DIR := $(dir $(MAKEFILE_NAME) )
 
 # echo suspend
-ifeq ("$(VERBOSE)","1")
+ifeq ($(VERBOSE),1)
   NO_ECHO :=
 else
   NO_ECHO := @
@@ -76,15 +76,15 @@ else
 endif
 
 # Toolchain commands
-CC       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc"
-CXX      := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-g++"
-AS       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-as"
-AR       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ar" -r
-LD       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ld"
-NM       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-nm"
-OBJDUMP  := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objdump"
-OBJCOPY  := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objcopy"
-SIZE     := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-size"
+CC       := $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc
+CXX      := $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-g++
+AS       := $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-as
+AR       := $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ar -r
+LD       := $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ld
+NM       := $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-nm
+OBJDUMP  := $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objdump
+OBJCOPY  := $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objcopy
+SIZE     := $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-size
 MK       := mkdir
 RM       := rm -rf
 CP       := cp
@@ -110,11 +110,11 @@ CFLAGS += -DRBC_MESH_SERIAL=1 -DBSP_SIMPLE
 C_SOURCE_FILES += $(RBC_MESH)/src/serial_handler_uart.c
 C_SOURCE_FILES += $(RBC_MESH)/src/mesh_aci.c
 
-ifeq ($(CLOCK_MASTER), "yes")
+ifeq ($(CLOCK_MASTER),yes)
 	CFLAGS += -D CLOCK_MASTER=1
 endif
 
-ifeq ($(USE_DFU), "yes")
+ifeq ($(USE_DFU),yes)
 	CFLAGS += -D MESH_DFU=1
 	C_SOURCE_FILES += $(RBC_MESH)/src/dfu_app.c
 	C_SOURCE_FILES += $(RBC_MESH)/src/mesh_flash.c
