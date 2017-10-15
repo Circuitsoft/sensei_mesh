@@ -128,10 +128,10 @@ class SensorValues(object):
             self.data = data
     def __repr__(self):
         if self.is_valid:
-            return "SensorValues: sensor_id:{sensor_id} proximity_ids:{proximity_ids} " \
+            return ("SensorValues: sensor_id:{sensor_id} proximity_ids:{proximity_ids} " \
                  + "proximity_rssi:{proximity_rssi} battery:{battery}, accel:(" \
                  + "{accel_x}, {accel_y}, {accel_z}), status:{status}, " \
-                 + "valid_time:{valid_time}".format(**vars(self))
+                 + "valid_time:{valid_time}").format(**vars(self))
         else:
             return "SensorValues: invalid data from sensor {sensor_id}: ({data})"\
                     .format(**vars(self))
@@ -187,10 +187,10 @@ class HeartbeatMsg(object):
          ) = unpack('<BiHHBiHH', bytearray(data))
 
     def __repr__(self):
-        return "Heartbeat: rssi:{rssi} sensor_id:{sensor_id} epoch:{epoch_seconds} " \
+        return ("Heartbeat: rssi:{rssi} sensor_id:{sensor_id} epoch:{epoch_seconds} " \
              + "ms:{epoch_ms} clock_version:{clock_version} received_at:{received_at} " \
              + "received_at_ms:{received_at_ms} " \
-             + "local_clock_version:{local_clock_version}".format(**vars(self))
+             + "local_clock_version:{local_clock_version}").format(**vars(self))
 
 class AciEventAppEvt(AciEventPkt):
     APP_EVENT_OPCODE_HEARTBEAT = 0x01
