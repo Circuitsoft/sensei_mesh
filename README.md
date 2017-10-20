@@ -1,12 +1,13 @@
 # Dependencies
 
- - [NRF 51 SDK 8.1.0](https://developer.nordicsemi.com/nRF51_SDK/nRF51_SDK_v8.x.x/nRF51_SDK_8.1.0_b6ed55f.zip)
- - Arduino IDE
- - Simblee platform for arduino
+ - [NRF 52 SDK 12.3.0](https://www.nordicsemi.com/eng/nordic/download_resource/54291/56/98853373/32925)
+ - [J-Link Software and Documentation Pack](https://www.segger.com/downloads/jlink/#J-LinkSoftwareAndDocumentationPack)
+ - nrfjprog (on mac: `brew cask install nrf5x-command-line-tools`)
+ - GCC ARM (on mac: `brew tap PX4/homebrew-px4 && brew install gcc-arm-none-eabi`)
 
 # Setup
 
- - Update Makefile with paths to the NRF SDK, and your serial board, and where arduino is installed.
+ - Install the NRF SDK at the same level as this project is checked out into.
 
 # Compile and flash devices
 
@@ -25,6 +26,15 @@ Program a listening device that doesn't sleep, and listens all the time.
 Program a master clock device that doesn't sleep, listens all the time, and broadcasts its clock signal at full power.
 
 `make program SERIAL_PORT=/dev/cu.usbserial-AI04QL7P SENSOR_CONFIGURATION_OPTIONS="--no-sleep" TARGET_BOARD=BOARD_LESSON_TRACKER CLOCK_MASTER=yes SENSOR_ID=61`
+
+# Debugging
+
+- `JLinkGDBServer -if swd -device nrf52 -speed 4000`
+- `arm-none-eabi-gdb _build/*.elf`
+  - `target remote :2331`
+  - `monitor reset`
+  - `continue`
+- `JLinkRTTClient`
 
 # Building on Windows
 
