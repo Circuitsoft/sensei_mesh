@@ -17,16 +17,15 @@ USE_DFU              ?= "no"
 # TODO: Pretty sure we can run everything on SDK 12. Try it!
 NRF51_SDK_BASE       := C:/Users/georg/sdks/nRF51_SDK_8.1.0_b6ed55f
 NRF51_SDK_VERSION    := 8
-NRF52_SDK_BASE       := C:/Users/georg/sdks/nRF5_SDK_12.3.0_d7731ad
+NRF52_SDK_BASE       := ../nRF5_SDK_12.3.0_d7731ad
 NRF52_SDK_VERSION    := 12
-MESH_BASE            := C:/Users/georg/sdks/ble_mesh_v0.9.1-Alpha
 SIMBLEE_BASE         := C:/Users/georg/sdks/Simblee_248
 
 NRF51_SOFTDEVICE_HEX := C:\Users\georg\sdks\nRF51_SDK_8.1.0_b6ed55f\components\softdevice\s130\hex\s130_softdevice.hex
 #NRF51_SOFTDEVICE_HEX := C:\Users\georg\sdks\nRF5_SDK_12.3.0_d7731ad\components\softdevice\s130\hex\s130_nrf51_2.0.1_softdevice.hex
-NRF52_SOFTDEVICE_HEX := C:\Users\georg\sdks\nRF5_SDK_12.3.0_d7731ad\components\softdevice\s132\hex\s132_nrf52_3.0.0_softdevice.hex
+NRF52_SOFTDEVICE_HEX := $(NRF52_SDK_BASE)/components/softdevice/s132/hex/s132_nrf52_3.0.0_softdevice.hex
 
-GNU_INSTALL_ROOT := C:/Program Files (x86)/GNU Tools ARM Embedded/6 2017-q2-update
+GNU_INSTALL_ROOT := /usr/local
 GNU_VERSION := 6.3.1
 GNU_PREFIX := arm-none-eabi
 
@@ -344,7 +343,7 @@ COMMON_FLAGS += -Wall -Werror -Wshadow -Wno-unused-function -Wno-comment
 ## Flags that are shared between C, C++, and ASM
 CFLAGS += $(COMMON_FLAGS)
 CXXFLAGS += $(COMMON_FLAGS)
-ASMFLAGS += $(COMMON_FLAGS)
+ASMFLAGS += $(COMMON_FLAGS) -mthumb
 
 ## C flags
 CFLAGS += -mthumb -mabi=aapcs --std=gnu11
@@ -383,7 +382,7 @@ TOOLCHAIN_BASE = $(basename $(notdir $(GNU_INSTALL_ROOT)))
 
 vpath %.c $(C_PATHS)
 vpath %.cpp $(CXX_PATHS)
-vpath %.s $(ASM_PATHS)
+vpath %.S $(ASM_PATHS)
 
 OBJECTS = $(CXX_OBJECTS) $(C_OBJECTS) $(ASM_OBJECTS) $(ARDUINO_CORE)
 
@@ -418,7 +417,7 @@ $(OBJECT_DIRECTORY)/%.o: %.cpp
 	-c $< -o $@ > $(OUTPUT_BINARY_DIRECTORY)/$*.lst
 
 # Assemble files
-$(OBJECT_DIRECTORY)/%.o: %.s
+$(OBJECT_DIRECTORY)/%.o: %.S
 	@echo Assembling file: $(notdir $<)
 	$(NO_ECHO)$(CC) $(ASMFLAGS) $(INC_PATHS) \
 	-c -o $@ $< > $(OUTPUT_BINARY_DIRECTORY)/$*.lst
