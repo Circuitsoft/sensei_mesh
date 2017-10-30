@@ -28,7 +28,7 @@ endif
 SOFTDEVICE    := s110
 CHIP          := ac
 
-SDK_BASE      := ../nRF51_SDK_8.1.0_b6ed55f
+SDK_BASE      := ../nRF51_SDK_9.0.0_2e23562
 COMPONENTS    := $(SDK_BASE)/components
 TEMPLATE_PATH := $(COMPONENTS)/toolchain/gcc
 RBC_MESH      := rbc_mesh
