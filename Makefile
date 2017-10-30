@@ -69,10 +69,10 @@ else
   NO_ECHO := @
 endif
 
-ifeq ($(MAKECMDGOALS),debug)
-  BUILD_TYPE := debug
-else
+ifeq ($(DEBUG),)
   BUILD_TYPE := release
+else
+  BUILD_TYPE := debug
 endif
 
 # Toolchain commands
@@ -195,9 +195,9 @@ OUTPUT_BINARY_DIRECTORY = $(OBJECT_DIRECTORY)
 BUILD_DIRECTORIES := $(sort $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY) $(LISTING_DIRECTORY) )
 
 ifeq ($(BUILD_TYPE),debug)
-  DEBUG_FLAGS += -D DEBUG -g -O0
+  DEBUG_FLAGS += -D DEBUG -ggdb3 -O0
 else
-  DEBUG_FLAGS += -D NDEBUG -O3
+  DEBUG_FLAGS += -D NDEBUG -Os
 endif
 
 # flags common to all targets
@@ -278,10 +278,6 @@ all: $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo "               $(OUTPUT_NAME).elf"
 	@echo "               $(OUTPUT_NAME).hex"
 	@echo "*****************************************************"
-
-debug : all
-
-release : all
 
 # Create build directories
 $(BUILD_DIRECTORIES):
