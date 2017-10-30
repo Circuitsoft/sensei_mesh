@@ -19,6 +19,9 @@ extern "C" {
 //#define RTS_PIN_NUMBER 0xff
 #define HWFC           false
 
+#define SDA_PIN_NUMBER 26
+#define SCL_PIN_NUMBER 27
+
 #ifdef __cplusplus
 }
 #endif

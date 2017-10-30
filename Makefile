@@ -139,7 +139,7 @@ C_SOURCE_FILES += $(RBC_MESH)/src/rand.c
 C_SOURCE_FILES += $(COMPONENTS)/ble/common/ble_advdata.c
 C_SOURCE_FILES += $(COMPONENTS)/toolchain/system_nrf51.c
 C_SOURCE_FILES += $(COMPONENTS)/softdevice/common/softdevice_handler/softdevice_handler.c
-C_SOURCE_FILES += $(COMPONENTS)/drivers_nrf/twi_master/incubated/twi_hw_master.c
+C_SOURCE_FILES += $(COMPONENTS)/drivers_nrf/twi_master/nrf_drv_twi.c
 C_SOURCE_FILES += $(COMPONENTS)/drivers_nrf/gpiote/nrf_drv_gpiote.c
 C_SOURCE_FILES += $(COMPONENTS)/drivers_nrf/common/nrf_drv_common.c
 
@@ -168,7 +168,7 @@ INC_PATHS += -I$(COMPONENTS)/ble/common
 INC_PATHS += -I$(COMPONENTS)/drivers_nrf/common
 INC_PATHS += -I$(COMPONENTS)/drivers_nrf/hal
 INC_PATHS += -I$(COMPONENTS)/drivers_nrf/pstorage
-INC_PATHS += -I$(COMPONENTS)/drivers_nrf/twi_master/incubated/
+INC_PATHS += -I$(COMPONENTS)/drivers_nrf/twi_master/
 INC_PATHS += -I$(COMPONENTS)/drivers_nrf/gpiote
 
 INC_PATHS += -I$(COMPONENTS)/toolchain/gcc

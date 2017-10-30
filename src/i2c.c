@@ -4,11 +4,25 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "twi_master.h"
+#include "app_util_platform.h"
+#include "nrf_drv_twi.h"
 #include "i2c.h"
+#include "boards.h"
+
+const nrf_drv_twi_t twi = NRF_DRV_TWI_INSTANCE(0);
 
 void i2c_init() {
-	twi_master_init();
+  ret_code_t err_code;
+
+  nrf_drv_twi_config_t config = NRF_DRV_TWI_DEFAULT_CONFIG(0);
+  config.sda = SDA_PIN_NUMBER;
+  config.scl = SCL_PIN_NUMBER;
+  config.frequency = TWI_FREQUENCY_FREQUENCY_K400;
+
+  err_code = nrf_drv_twi_init(&twi, &config, NULL);
+  APP_ERROR_CHECK(err_code);
+
+  nrf_drv_twi_enable(&twi);
 }
 
 // read n-bytes from i2c register at the given address where subsequent bytes
@@ -16,26 +30,23 @@ void i2c_init() {
 bool i2c_read_data(uint8_t address, uint8_t reg, uint8_t* data, uint8_t len)
 {
 
-	address = address << 1;
-
-	// initialize data to zero so we don't return random values.
-	for (int i = 0; i < len; i++)
-	{
-		data[i] = 0;
-	}
-
-  // Write: register address we want to start reading from
-  if (twi_master_transfer(address, &reg, 1, TWI_DONT_ISSUE_STOP))
+  // initialize data to zero so we don't return random values.
+  for (int i = 0; i < len; i++)
   {
-		// Read: the number of bytes requested.
-    if (twi_master_transfer(address | TWI_READ_BIT, data, len, TWI_ISSUE_STOP))
+    data[i] = 0;
+  }
+
+  if (nrf_drv_twi_tx(&twi, address, &reg, 1, true) == NRF_SUCCESS)
+  {
+    // Read: the number of bytes requested.
+    if (nrf_drv_twi_rx(&twi, address, data, len, false) == NRF_SUCCESS)
     {
       // Read succeeded.
-			return true;
+      return true;
     }
-	}
+  }
 
-	// read or write failed.
+  // read or write failed.
   return false;
 }
 
@@ -44,32 +55,30 @@ bool i2c_read_data(uint8_t address, uint8_t reg, uint8_t* data, uint8_t len)
 // then we read 1 byte in response from the same i2c device.
 uint8_t i2c_read_reg(uint8_t address, uint8_t reg)
 {
-	uint8_t data = 0;
+  uint8_t data = 0;
 
   if (i2c_read_data(address, reg, &data, 1))
-	{
-		return data;
-	}
-	return 0;
+  {
+    return data;
+  }
+  return 0;
 }
 
 
 // write 1 byte to the i2c register at the given address (see table 11 in the LSM9DS0 spec)
 bool i2c_write_reg(uint8_t address, uint8_t reg, uint8_t value)
 {
-	uint8_t data[2];
-	data[0] = reg;
-	data[1] = value;
-
-	address = address << 1;
+  uint8_t data[2];
+  data[0] = reg;
+  data[1] = value;
 
   // Write: register protocol
-  if (twi_master_transfer(address, data, 2, TWI_ISSUE_STOP))
+  if (nrf_drv_twi_tx(&twi, address, data, 2, false) == NRF_SUCCESS)
   {
-		  return true;
-	}
+      return true;
+  }
 
-	// read or write failed.
+  // read or write failed.
   return false;
 }
 
