@@ -25,7 +25,7 @@ else
 	#SERIAL_PORT  := /dev/cu.usbserial-DO00C2G2  # Breadboard setup
 endif
 
-SOFTDEVICE    := s110
+SOFTDEVICE    := s130
 CHIP          := ac
 
 SDK_BASE      := ../nRF51_SDK_10.0.0_dc26b5e
@@ -225,7 +225,7 @@ ASMFLAGS += $(DEBUG_FLAGS)
 ASMFLAGS += -x assembler-with-cpp
 ASMFLAGS += -D NRF51
 ASMFLAGS += -D BLE_STACK_SUPPORT_REQD
-ASMFLAGS += -D S110
+ASMFLAGS += -D S130
 ASMFLAGS += -D SOFTDEVICE_PRESENT
 ASMFLAGS += -D $(TARGET_BOARD)
 
