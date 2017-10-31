@@ -14,17 +14,6 @@ extern "C" {
 #define LEDS_NUMBER    0
 #define BUTTONS_NUMBER 0
 
-
-#define BUTTONS_LIST { BUTTON_1, BUTTON_2 }
-
-#define BSP_BUTTON_0   BUTTON_1
-#define BSP_BUTTON_1   BUTTON_2
-
-#define BSP_BUTTON_0_MASK (1<<BSP_BUTTON_0)
-#define BSP_BUTTON_1_MASK (1<<BSP_BUTTON_1)
-
-#define BUTTONS_MASK   (BSP_BUTTON_0_MASK | BSP_BUTTON_1_MASK )
-
 #define RX_PIN_NUMBER  0
 #define TX_PIN_NUMBER  1
 //#define CTS_PIN_NUMBER 0xff
