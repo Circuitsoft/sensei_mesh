@@ -28,7 +28,7 @@ endif
 SOFTDEVICE    := s110
 CHIP          := ac
 
-SDK_BASE      := ../nRF51_SDK_9.0.0_2e23562
+SDK_BASE      := ../nRF51_SDK_10.0.0_dc26b5e
 COMPONENTS    := $(SDK_BASE)/components
 TEMPLATE_PATH := $(COMPONENTS)/toolchain/gcc
 RBC_MESH      := rbc_mesh
@@ -173,6 +173,7 @@ INC_PATHS += -I$(COMPONENTS)/toolchain/gcc
 INC_PATHS += -I$(COMPONENTS)/toolchain
 INC_PATHS += -I$(COMPONENTS)/device
 INC_PATHS += -I$(COMPONENTS)/drivers_nrf/hal
+INC_PATHS += -I$(COMPONENTS)/drivers_nrf/delay
 INC_PATHS += -I$(COMPONENTS)/drivers_nrf/spi_slave
 
 OBJECT_DIRECTORY = _build

@@ -19,7 +19,7 @@ void i2c_init() {
   config.scl = SCL_PIN_NUMBER;
   config.frequency = TWI_FREQUENCY_FREQUENCY_K400;
 
-  err_code = nrf_drv_twi_init(&twi, &config, NULL);
+  err_code = nrf_drv_twi_init(&twi, &config, NULL, NULL);
   APP_ERROR_CHECK(err_code);
 
   nrf_drv_twi_enable(&twi);

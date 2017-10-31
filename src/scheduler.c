@@ -162,7 +162,7 @@ void scheduler_init(bool sleep_enabled) {
   m_sleep_enabled = sleep_enabled;
   rand_prng_seed(&m_rand);
   m_scheduler_state = SCHEDULER_STATE_STOPPED;
-  APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, false);
+  APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
   app_timer_create(&m_periodic_timer_ID, APP_TIMER_MODE_REPEATED, periodic_timer_cb);
   app_timer_create(&m_clock_sync_timer_ID, APP_TIMER_MODE_SINGLE_SHOT, clock_sync_cb);
   app_timer_create(&m_offset_timer_ID, APP_TIMER_MODE_SINGLE_SHOT, offset_timer_cb);

@@ -1,6 +1,6 @@
 # Dependencies
 
- - [NRF 51 SDK 9.0.0](https://developer.nordicsemi.com/nRF51_SDK/nRF51_SDK_v9.x.x/nRF51_SDK_9.0.0_2e23562.zip)
+ - [NRF 51 SDK 10.0.0](https://developer.nordicsemi.com/nRF51_SDK/nRF51_SDK_v10.x.x/nRF51_SDK_10.0.0_dc26b5e.zip)
  - Arduino IDE
  - Simblee platform for arduino
 
