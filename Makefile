@@ -28,13 +28,14 @@ endif
 SOFTDEVICE    := s130
 CHIP          := ac
 
-SDK_BASE      := ../nRF51_SDK_10.0.0_dc26b5e
+SDK_BASE      := ../nRF5_SDK_11.0.0_89a8197
+SDK_VERSION   := $(word 1,$(subst ., ,$(word 3,$(subst _, ,$(SDK_BASE)))))
 COMPONENTS    := $(SDK_BASE)/components
 TEMPLATE_PATH := $(COMPONENTS)/toolchain/gcc
 RBC_MESH      := rbc_mesh
 NRF_LOADER    := nrfjprog
 
-LINKER_SCRIPT := $(COMPONENTS)/softdevice/$(SOFTDEVICE)/toolchain/armgcc/*$(CHIP).ld
+LINKER_SCRIPT := nrf51_s130.ld
 SOFTDEVICE_HEX:= $(COMPONENTS)/softdevice/$(SOFTDEVICE)/hex/*.hex
 
 LINKER_SCRIPT := $(shell echo $(LINKER_SCRIPT))
@@ -109,7 +110,7 @@ C_SOURCE_FILES += $(COMPONENTS)/libraries/timer/app_timer.c \
 	$(COMPONENTS)/drivers_nrf/pstorage/pstorage.c \
 	$(COMPONENTS)/libraries/util/app_error.c
 
-CFLAGS += -DRBC_MESH_SERIAL=1 -DBSP_SIMPLE
+CFLAGS += -DRBC_MESH_SERIAL=1 -DBSP_SIMPLE -DNORDIC_SDK_VERSION=$(SDK_VERSION)
 C_SOURCE_FILES += $(RBC_MESH)/src/serial_handler_uart.c
 C_SOURCE_FILES += $(RBC_MESH)/src/mesh_aci.c
 
@@ -159,7 +160,7 @@ INC_PATHS += -I../../../RTT
 
 INC_PATHS += -I$(COMPONENTS)/softdevice/$(SOFTDEVICE)/headers
 INC_PATHS += -I$(COMPONENTS)/softdevice/common/softdevice_handler
-INC_PATHS += -I$(COMPONENTS)/toolchain/gcc
+INC_PATHS += -I$(COMPONENTS)/toolchain/CMSIS/Include
 INC_PATHS += -I$(COMPONENTS)/libraries/util
 INC_PATHS += -I$(COMPONENTS)/libraries/timer
 INC_PATHS += -I$(COMPONENTS)/ble/common

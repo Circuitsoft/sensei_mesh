@@ -25,9 +25,10 @@
 #include <stdio.h>
 
 
+static nrf_clock_lf_cfg_t clock_lf_cfg = NRF_CLOCK_LFCLKSRC;
 #define MESH_ACCESS_ADDR        (0xA555410C)
 #define MESH_INTERVAL_MIN_MS    (100)
-#define MESH_CLOCK_SRC          (NRF_CLOCK_LFCLKSRC_XTAL_75_PPM)
+#define MESH_CLOCK_SRC          (clock_lf_cfg)
 
 /** @brief General error handler. */
 static inline void error_loop(void)
@@ -47,7 +48,7 @@ static inline void error_loop(void)
 * @param[in] line_num Line where the error check failed
 * @param[in] p_file_name File where the error check failed
 */
-void sd_assert_handler(uint32_t pc, uint16_t line_num, const uint8_t* p_file_name)
+void sd_assert_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
   error_loop();
 }
@@ -130,7 +131,7 @@ int main(void)
 #endif
 
   /* Enable Softdevice (including sd_ble before framework */
-  SOFTDEVICE_HANDLER_INIT(MESH_CLOCK_SRC, NULL);
+  SOFTDEVICE_HANDLER_INIT(&MESH_CLOCK_SRC, NULL);
   softdevice_ble_evt_handler_set(rbc_mesh_ble_evt_handler);
 
   //clock_initialization();

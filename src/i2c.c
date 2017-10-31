@@ -39,7 +39,7 @@ bool i2c_read_data(uint8_t address, uint8_t reg, uint8_t* data, uint8_t len)
   if (nrf_drv_twi_tx(&twi, address, &reg, 1, true) == NRF_SUCCESS)
   {
     // Read: the number of bytes requested.
-    if (nrf_drv_twi_rx(&twi, address, data, len, false) == NRF_SUCCESS)
+    if (nrf_drv_twi_rx(&twi, address, data, len) == NRF_SUCCESS)
     {
       // Read succeeded.
       return true;

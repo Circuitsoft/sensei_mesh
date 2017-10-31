@@ -9,7 +9,7 @@
 #define APP_CONFIG_BLOCK 0
 #define APP_CONFIG_OFFSET 0
 
-#define APP_CONFIG_STORAGE_SIZE ((sizeof(app_config_t)/16 + 1) * 16)
+#define APP_CONFIG_STORAGE_SIZE ((sizeof(app_config_t)/32 + 1) * 32)
 
 static pstorage_handle_t m_storage_handle;
 static app_config_t m_config;

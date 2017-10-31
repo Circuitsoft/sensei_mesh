@@ -45,6 +45,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <string.h>
 
+extern int __data_start__;
+
 /*****************************************************************************
 * Static globals
 *****************************************************************************/
@@ -125,7 +127,7 @@ uint32_t rbc_mesh_init(rbc_mesh_init_params_t init_params)
 
 #if(NORDIC_SDK_VERSION >= 11)
     ble_enable.gap_enable_params.periph_conn_count = 1;
-    uint32_t ram_base = RAM_R1_BASE;
+    uint32_t ram_base = (uint32_t)&__data_start__;
     error_code = sd_ble_enable(&ble_enable, &ram_base);
 #else
     error_code = sd_ble_enable(&ble_enable);
