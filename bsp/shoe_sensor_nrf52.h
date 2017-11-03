@@ -1,5 +1,3 @@
-
-
 #ifndef SHOE_SENSOR_H
 #define SHOE_SENSOR_H
 
@@ -9,26 +7,14 @@ extern "C" {
 
 #define MMA8541
 
-// LEDs definitions for Sensei shoe sensor board
-#define LEDS_NUMBER    0
+// LEDs definitions for Shoe sensor v2
+#define LEDS_NUMBER 0
+
 #define BUTTONS_NUMBER 0
 
-
-#define BUTTONS_LIST { BUTTON_1, BUTTON_2 }
-
-#define BSP_BUTTON_0   BUTTON_1
-#define BSP_BUTTON_1   BUTTON_2
-
-#define BSP_BUTTON_0_MASK (1<<BSP_BUTTON_0)
-#define BSP_BUTTON_1_MASK (1<<BSP_BUTTON_1)
-
-#define BUTTONS_MASK   (BSP_BUTTON_0_MASK | BSP_BUTTON_1_MASK )
-
-#define RX_PIN_NUMBER  0
-#define TX_PIN_NUMBER  1
-//#define CTS_PIN_NUMBER 0xff
-//#define RTS_PIN_NUMBER 0xff
-#define HWFC           false
+#define RX_PIN_NUMBER 3
+#define TX_PIN_NUMBER 2
+#define HWFC false
 
 // Low frequency clock source to be used by the SoftDevice & mesh
 
@@ -37,13 +23,6 @@ extern "C" {
                                  .rc_ctiv       = 0,                                \
                                  .rc_temp_ctiv  = 0,                                \
                                  .xtal_accuracy = NRF_CLOCK_LF_XTAL_ACCURACY_20_PPM}
-
-// Otherwise, synthesize it internally
-// #define NRF_CLOCK_LFCLKSRC      {.source       = NRF_CLOCK_LF_SRC_RC,               \
-//                                 .rc_ctiv       = 16,                                \
-//                                 .rc_temp_ctiv  = 2,                                 \
-//                                 .xtal_accuracy = NRF_CLOCK_LF_XTAL_ACCURACY_20_PPM}
-
 
 #ifdef __cplusplus
 }

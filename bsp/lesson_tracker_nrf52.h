@@ -8,37 +8,22 @@ extern "C" {
 #define MMA8541
 #define JOSTLE_DETECT
 
-// LEDs definitions for SENSEI_AREA_H
-#define LEDS_NUMBER    1
+// LEDs definitions for Lesson Tracker v2
+#define LEDS_NUMBER 0
 
-#define LED_START      8
-#define LED_1          8
-#define LED_STOP       8
+#define BUTTONS_NUMBER 0
 
-#define LEDS_ACTIVE_STATE 0
+#define RX_PIN_NUMBER 3
+#define TX_PIN_NUMBER 2
+#define HWFC false
 
-#define LEDS_INV_MASK  LEDS_MASK
+// Low frequency clock source to be used by the SoftDevice & mesh
 
-#define LEDS_LIST { LED_1 }
-
-#define BSP_LED_0      LED_1
-
-#define BUTTONS_NUMBER 1
-
-#define BUTTON_START   21
-#define BUTTON_1       21
-#define BUTTON_STOP    21
-#define BUTTON_PULL    NRF_GPIO_PIN_PULLUP
-
-#define BUTTONS_ACTIVE_STATE 0
-
-#define BUTTONS_LIST { BUTTON_1 }
-
-#define BSP_BUTTON_0   BUTTON_1
-
-#define RX_PIN_NUMBER  3
-#define TX_PIN_NUMBER  2
-#define HWFC           false
+// If you have LFXTAL available
+#define NRF_CLOCK_LFCLKSRC      {.source        = NRF_CLOCK_LF_SRC_XTAL,            \
+                                 .rc_ctiv       = 0,                                \
+                                 .rc_temp_ctiv  = 0,                                \
+                                 .xtal_accuracy = NRF_CLOCK_LF_XTAL_ACCURACY_20_PPM}
 
 #ifdef __cplusplus
 }

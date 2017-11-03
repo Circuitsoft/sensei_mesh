@@ -55,6 +55,8 @@ static uint32_t         m_interval_min_ms;
 static fifo_t           m_rbc_event_fifo;
 static rbc_mesh_event_t m_rbc_event_buffer[RBC_MESH_APP_EVENT_QUEUE_LENGTH];
 
+extern int __data_start__;
+
 /*****************************************************************************
 * Static Functions
 *****************************************************************************/
@@ -125,7 +127,7 @@ uint32_t rbc_mesh_init(rbc_mesh_init_params_t init_params)
     
 #if(NORDIC_SDK_VERSION >= 11)
     ble_enable.gap_enable_params.periph_conn_count = 1;
-    uint32_t ram_base = RAM_R1_BASE;
+    uint32_t ram_base = (uint32_t)(&__data_start__);
     error_code = sd_ble_enable(&ble_enable, &ram_base);
 #else
     error_code = sd_ble_enable(&ble_enable);

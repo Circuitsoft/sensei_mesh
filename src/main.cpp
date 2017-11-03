@@ -251,11 +251,15 @@ int main(void) {
     }
     sd_app_evt_wait();
 
+#ifdef JOSTLE_DETECT
     // Check time-of-last-jostle timer and go back to sleep if it's over ~30 min
     uint32_t time = rtc_value();
     logf("Time since last jostle: %d", rtc_to_walltime(time - last_jostle));
     auto idle =
         rtc_to_walltime(time - last_jostle) > INACTIVITY_THRESHOLD_SECONDS;
+#else
+    auto idle = true;
+#endif
     if (mesh_running && idle) {
       log("Stopping mesh");
       // Go to sleep if the last jostle was INACTIVITY_THRESHOLD_SECONDS ms

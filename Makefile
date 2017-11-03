@@ -4,30 +4,40 @@
 # Selectable build options
 #------------------------------------------------------------------------------
 
-# TODO: Move these into make targets
 #TARGET_BOARD         ?= BOARD_RFD77201
-TARGET_BOARD         ?= BOARD_PCA10040
+TARGET_BOARD         ?= BOARD_LESSON_TRACKERv2
 #TARGET_BOARD         ?= BOARD_SHOE_SENSORv2
 
-SOC_FAMILY           := nRF52
-#SOC_FAMILY           := Simblee
+SOC_FAMILY           = nRF52
+#SOC_FAMILY           = Simblee
 
-USE_DFU              ?= "no"
+USE_DFU              ?= no
+
+ifeq ($(shell uname),Linux)
+	RFD_LOADER    = $(SIMBLEE_BASE)/RFDLoader_linux
+	ARDUINO_BASE  = $(HOME)/.arduino15
+	SERIAL_PORT   = /dev/ttyUSB0
+else
+	RFD_LOADER    = $(SIMBLEE_BASE)/RFDLoader_osx
+	ARDUINO_BASE  = $(HOME)/Library/Arduino15
+	#SERIAL_PORT  = /dev/cu.usbserial-DN00CSZ7  # left
+	SERIAL_PORT   = /dev/cu.usbserial-DN00D34P  # right
+	#SERIAL_PORT  = /dev/cu.usbserial-A105RB12
+	#SERIAL_PORT  = /dev/cu.usbserial-FTZ86FTC  # tag-connect
+	#SERIAL_PORT  = /dev/cu.usbserial-DO00C2G2  # Breadboard setup
+endif
 
 # TODO: Pretty sure we can run everything on SDK 12. Try it!
-NRF51_SDK_BASE       := C:/Users/georg/sdks/nRF51_SDK_8.1.0_b6ed55f
-NRF51_SDK_VERSION    := 8
-NRF52_SDK_BASE       := ../nRF5_SDK_12.3.0_d7731ad
-NRF52_SDK_VERSION    := 12
-SIMBLEE_BASE         := C:/Users/georg/sdks/Simblee_248
+NRF51_SDK_BASE       = ../nRF51_SDK_8.1.0_b6ed55f
+NRF52_SDK_BASE       = ../nRF5_SDK_12.3.0_d7731ad
+SIMBLEE_BASE  = $(ARDUINO_BASE)/packages/Simblee/hardware/Simblee/1.1.2
 
-NRF51_SOFTDEVICE_HEX := C:\Users\georg\sdks\nRF51_SDK_8.1.0_b6ed55f\components\softdevice\s130\hex\s130_softdevice.hex
-#NRF51_SOFTDEVICE_HEX := C:\Users\georg\sdks\nRF5_SDK_12.3.0_d7731ad\components\softdevice\s130\hex\s130_nrf51_2.0.1_softdevice.hex
-NRF52_SOFTDEVICE_HEX := $(NRF52_SDK_BASE)/components/softdevice/s132/hex/s132_nrf52_3.0.0_softdevice.hex
+NRF51_SOFTDEVICE_HEX = $(COMPONENTS)/softdevice/s130/hex/s130_softdevice.hex
+NRF52_SOFTDEVICE_HEX = $(COMPONENTS)/softdevice/s132/hex/s132_nrf52_3.0.0_softdevice.hex
 
 GNU_INSTALL_ROOT := /usr/local
 GNU_VERSION := 6.3.1
-GNU_PREFIX := arm-none-eabi
+GNU_PREFIX = arm-none-eabi
 
 #------------------------------------------------------------------------------
 # Define relative paths to SDK components
@@ -36,10 +46,10 @@ GNU_PREFIX := arm-none-eabi
 ifeq ($(SOC_FAMILY),Simblee)
 $(info Building for Simblee)
 
-SDK_BASE      := $(NRF51_SDK_BASE)
-COMPONENTS    := $(SDK_BASE)/components
+SDK_BASE      = $(NRF51_SDK_BASE)
+COMPONENTS    = $(SDK_BASE)/components
 
-LINKER_SCRIPT := $(SIMBLEE_BASE)/variants/Simblee/linker_scripts/gcc/Simblee.ld
+LINKER_SCRIPT = $(SIMBLEE_BASE)/variants/Simblee/linker_scripts/gcc/Simblee.ld
 
 CXX_SOURCE_FILES += $(SIMBLEE_BASE)/libraries/SimbleeBLE/SimbleeBLE.cpp
 CXX_SOURCE_FILES += $(SIMBLEE_BASE)/variants/Simblee/variant.cpp
@@ -83,13 +93,13 @@ ARDUINO_CORE = arduino_core/core.a
 
 # Detect OS and use correct RFD Loader
 ifeq ($(detected_OS),Windows)
-    RFD_LOADER 		:= $(SIMBLEE_BASE)/RFDLoader.exe
+    RFD_LOADER 		= $(SIMBLEE_BASE)/RFDLoader.exe
 endif
 ifeq ($(detected_OS),Darwin)  # Mac OS X
-    RFD_LOADER 		:= $(SIMBLEE_BASE)/RFDLoader_osx
+    RFD_LOADER 		= $(SIMBLEE_BASE)/RFDLoader_osx
 endif
 ifeq ($(detected_OS),Linux)
-    RFD_LOADER 		:= $(SIMBLEE_BASE)/RFDLoader_linux
+    RFD_LOADER 		= $(SIMBLEE_BASE)/RFDLoader_linux
 endif
 
 endif
@@ -97,8 +107,9 @@ endif
 ifeq ($(SOC_FAMILY),nRF52)
 $(info Building for nRF52)
 
-SDK_BASE      := $(NRF52_SDK_BASE)
-COMPONENTS    := $(SDK_BASE)/components
+SDK_BASE      = $(NRF52_SDK_BASE)
+SDK_VERSION   = $(word 1,$(subst ., ,$(word 3,$(subst _, ,$(SDK_BASE)))))
+COMPONENTS    = $(SDK_BASE)/components
 LINKER_SCRIPT := src/nrf52832.ld
 
 ASM_SOURCE_FILES  += $(COMPONENTS)/toolchain/gcc/gcc_startup_nrf52.S
@@ -141,7 +152,7 @@ COMMON_FLAGS += -DNRF52
 COMMON_FLAGS += -DS132
 COMMON_FLAGS += -DNRF52832
 COMMON_FLAGS += -DNRF52832_XXAA
-COMMON_FLAGS += -DNORDIC_SDK_VERSION=$(NRF52_SDK_VERSION)
+COMMON_FLAGS += -DNORDIC_SDK_VERSION=$(SDK_VERSION)
 COMMON_FLAGS += -DRAM_R1_BASE=0x20003000
 COMMON_FLAGS += -DNRF_SD_BLE_API_VERSION=3
 COMMON_FLAGS += -DARM_MATH_CM4
@@ -163,12 +174,12 @@ endif # SOC_FAMILY
 
 # TODO: Add nRF51 build for SD130
 
-TEMPLATE_PATH := $(COMPONENTS)/toolchain/gcc
-RBC_MESH      := rbc_mesh
+TEMPLATE_PATH = $(COMPONENTS)/toolchain/gcc
+RBC_MESH      = rbc_mesh
 
 # TODO: This is hardcoded on - any reason to keep this flag?
-ifeq ($(USE_RBC_MESH_SERIAL), "yes")
-  SERIAL_STRING := "_serial"
+ifeq ($(USE_RBC_MESH_SERIAL), yes)
+  SERIAL_STRING = _serial
 #	CFLAGS += -DRBC_MESH_SERIAL
 endif
 COMMON_FLAGS += -DRBC_MESH_SERIAL=1 #-DBSP_SIMPLE
@@ -178,17 +189,17 @@ ifdef JLINK_SN
   JLINK_SERIAL_NUMBER= --snr $(JLINK_SN)
 endif
 
-ifeq ($(USE_DFU), "yes")
-  DFU_STRING="_dfu"
+ifeq ($(USE_DFU), yes)
+  DFU_STRING=_dfu
 endif
 
 ifneq ($(filter debug,$(MAKECMDGOALS)),)
-  BUILD_TYPE := debug
+  BUILD_TYPE = debug
 else
   BUILD_TYPE ?= release
 endif
 
-OUTPUT_NAME := rbc_mesh$(SERIAL_STRING)$(DFU_STRING)_$(TARGET_BOARD)_$(SOC_FAMILY)_$(BUILD_TYPE)
+OUTPUT_NAME = rbc_mesh$(SERIAL_STRING)$(DFU_STRING)_$(TARGET_BOARD)_$(SOC_FAMILY)_$(BUILD_TYPE)
 
 #------------------------------------------------------------------------------
 # Proceed cautiously beyond this point.  Little should change.
@@ -197,32 +208,33 @@ OUTPUT_NAME := rbc_mesh$(SERIAL_STRING)$(DFU_STRING)_$(TARGET_BOARD)_$(SOC_FAMIL
 export OUTPUT_NAME
 export GNU_INSTALL_ROOT
 
-MAKEFILE_NAME := $(MAKEFILE_LIST)
-MAKEFILE_DIR := $(dir $(MAKEFILE_NAME) )
+MAKEFILE_NAME = $(MAKEFILE_LIST)
+MAKEFILE_DIR = $(dir $(MAKEFILE_NAME) )
 
 # echo suspend
-ifeq ("$(VERBOSE)","1")
-  NO_ECHO :=
+ifeq ($(VERBOSE),1)
+  NO_ECHO =
 else
-  NO_ECHO := @
+  NO_ECHO = @
 endif
 
 # Toolchain commands
-CC       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc"
-AS       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-as"
-AR       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ar" -r
-LD       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ld"
-NM       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-nm"
-OBJDUMP  := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objdump"
-OBJCOPY  := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objcopy"
-SIZE     := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-size"
-MK       := mkdir
-RM       := rm -rf
-CP       := cp
-GENDAT   := ./gen_dat
-GENZIP   := zip
+CC       = $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc
+CXX      = $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-g++
+AS       = $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-as
+AR       = $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ar -r
+LD       = $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ld
+NM       = $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-nm
+OBJDUMP  = $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objdump
+OBJCOPY  = $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objcopy
+SIZE     = $(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-size
+MK       = mkdir
+RM       = rm -rf
+CP       = cp
+GENDAT   = ./gen_dat
+GENZIP   = zip
 
-BUILDMETRICS  := ./buildmetrics.py
+BUILDMETRICS  = ./buildmetrics.py
 
 # function for removing duplicates in a list
 remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-out $(firstword $1),$1))))
@@ -239,11 +251,11 @@ C_SOURCE_FILES += $(COMPONENTS)/libraries/crc16/crc16.c
 C_SOURCE_FILES += $(RBC_MESH)/src/serial_handler_uart.c
 C_SOURCE_FILES += $(RBC_MESH)/src/mesh_aci.c
 
-ifeq ($(CLOCK_MASTER), "yes")
+ifeq ($(CLOCK_MASTER), yes)
 	COMMON_FLAGS += -D CLOCK_MASTER=1
 endif
 
-ifeq ($(USE_DFU), "yes")
+ifeq ($(USE_DFU), yes)
 	COMMON_FLAGS += -D MESH_DFU=1
 endif
 
@@ -321,7 +333,7 @@ LISTING_DIRECTORY = $(OBJECT_DIRECTORY)
 OUTPUT_BINARY_DIRECTORY = $(OBJECT_DIRECTORY)
 
 # Sorting removes duplicates
-BUILD_DIRECTORIES := $(sort $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY) $(LISTING_DIRECTORY) )
+BUILD_DIRECTORIES = $(sort $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY) $(LISTING_DIRECTORY) )
 
 ifeq ($(BUILD_TYPE),debug)
   DEBUG_FLAGS += -DDEBUG=1 -g -O0 -ggdb -DJLINK_SN=$(JLINK_SN)
@@ -353,7 +365,6 @@ CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin
 CXXFLAGS += -g -Os -w -std=gnu++14 -ffunction-sections -fdata-sections -fno-rtti
 CXXFLAGS += -fno-exceptions -fno-builtin -MMD -mthumb -fno-threadsafe-statics
 
-CXX := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-g++"
 
 ## Linker flags
 LDFLAGS += -Xlinker -Map=$(LISTING_DIRECTORY)/$(OUTPUT_NAME).map
@@ -506,7 +517,7 @@ nrf51: all install_nordic_NRF51 configure
 .PHONY: simblee
 simblee: all install_simblee configure
 
-.DEFAULT_GOAL:=nrf52
+.DEFAULT_GOAL=nrf52
 .PHONY: nrf52
 nrf52: all install_nordic configure
 
