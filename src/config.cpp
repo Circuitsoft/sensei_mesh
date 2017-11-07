@@ -154,8 +154,8 @@ ret_code_t Config_t::update(uint8_t *data, uint8_t length) {
   fds_find_token_t ftok = {0};
 
   // Find current record (assumption: there are no duplicates)
-  if (fds_record_find(config_file_id, config_record_key, &record_desc, &ftok) ==
-      FDS_SUCCESS) {
+  err = fds_record_find(config_file_id, config_record_key, &record_desc, &ftok);
+  if (err == FDS_SUCCESS) {
 
     // fds_record_update runs asynchronously. Buffer above needs to stay in
     // memory until the write is complete (we get a notification via the event
