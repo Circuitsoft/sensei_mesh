@@ -18,7 +18,7 @@ typedef struct {
 class Config_t {
 private:
   // FDS needs this to be word-aligned
-  app_config_t backing_struct;
+  alignas(int32_t) app_config_t backing_struct;
 
   bool loaded{false};
 
