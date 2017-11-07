@@ -4,6 +4,7 @@
 #include "fstorage.h"
 #include "leds.h"
 #include "nrf_error.h"
+#include "power_manage.h"
 #include "section_vars.h"
 #include <string.h>
 
@@ -12,6 +13,7 @@
 
 volatile bool gc_complete;
 volatile bool write_complete;
+volatile bool init_complete;
 
 static void fds_event_handler(fds_evt_t const *const p_fds_evt) {
   APP_ASSERT_EQUAL(p_fds_evt->result, FDS_SUCCESS,
@@ -19,8 +21,11 @@ static void fds_event_handler(fds_evt_t const *const p_fds_evt) {
   log("fds_event_handler()");
   switch (p_fds_evt->id) {
   case FDS_EVT_INIT:
+    init_complete = true;
     if (p_fds_evt->result != FDS_SUCCESS) {
       log("initialization failed");
+    } else {
+      log("fds_initialized");
     }
     break;
   case FDS_EVT_WRITE:
@@ -79,6 +84,8 @@ ret_code_t Config_t::write(uint8_t *data, uint8_t length) {
     //
     // NOTE: Untested. From my one read of the docs, I think this will work?
     // If this doesn't work, the easy fix is to block until gc_complete is set
+    while (!gc_complete)
+      power_manage();
 
     ret = fds_record_write(&record_desc, &record);
   }
@@ -140,6 +147,8 @@ ret_code_t Config_t::update(uint8_t *data, uint8_t length) {
   record_chunk.p_data = data;
   record_chunk.length_words = length;
 
+  record.file_id = config_file_id;
+  record.key = config_record_key;
   record.data.p_chunks = &record_chunk;
   record.data.num_chunks = 1;
 
@@ -147,8 +156,8 @@ ret_code_t Config_t::update(uint8_t *data, uint8_t length) {
   fds_find_token_t ftok = {0};
 
   // Find current record (assumption: there are no duplicates)
-  if (fds_record_find(config_file_id, config_record_key, &record_desc, &ftok) ==
-      FDS_SUCCESS) {
+  err = fds_record_find(config_file_id, config_record_key, &record_desc, &ftok);
+  if (err == FDS_SUCCESS) {
 
     // fds_record_update runs asynchronously. Buffer above needs to stay in
     // memory until the write is complete (we get a notification via the event
@@ -211,6 +220,7 @@ bool Config_t::save() {
 
 bool Config_t::Init() {
   loaded = false;
+  init_complete = false;
 
   APP_ASSERT(config_record_key != 0x0000,
              "record_key 0x0000 is system reserved");
@@ -228,6 +238,9 @@ bool Config_t::Init() {
     log("fds_init() failed");
     return false;
   }
+
+  while (!init_complete)
+    power_manage();
 
   // Load on initialization
   loadIfNotLoaded();
