@@ -147,6 +147,8 @@ ret_code_t Config_t::update(uint8_t *data, uint8_t length) {
   record_chunk.p_data = data;
   record_chunk.length_words = length;
 
+  record.file_id = config_file_id;
+  record.key = config_record_key;
   record.data.p_chunks = &record_chunk;
   record.data.num_chunks = 1;
 
