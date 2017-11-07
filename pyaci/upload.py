@@ -53,7 +53,9 @@ class Uploader(object):
 
     def run_app_command(self, command):
         data = command.serialize()
-        return self.aci.write_aci_cmd(AciCommand.AciAppCommand(data=data,length=len(data)+1))
+        retval = self.aci.write_aci_cmd(AciCommand.AciAppCommand(data=data,length=len(data)+1))
+        print("Events received: %s" % retval)
+        return retval
 
     def sync_time(self):
         self.last_time_sync = time.time()
@@ -154,7 +156,8 @@ if __name__ == '__main__':
 
     parser = ArgumentParser()
     parser.add_argument("-c", "--config", dest="config", help="Configuration file, e.g. ~/.sensei.yaml")
-    parser.add_argument("-d", "--dry-run", dest="dry_run", help="Dry run. Do not actually upload anything")
+    parser.add_argument("-d", "--dry-run", dest="dry_run", action='store_const', const=True,
+                        help="Dry run. Do not actually upload anything")
     options = parser.parse_args()
 
     config_path = options.config or expanduser("~") + "/.sensei.yaml"
