@@ -21,6 +21,7 @@ void sensor_init() {
 #endif
 
 #ifdef JOSTLE_DETECT
+  log("jostle detect init");
   jostle_detect_init();
 #endif
 

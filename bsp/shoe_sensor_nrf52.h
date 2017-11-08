@@ -5,7 +5,14 @@
 extern "C" {
 #endif
 
-#define MMA8541
+#define JOSTLE_DETECT
+
+#define BMX055
+#define IMU_INT1_GPIO 8
+#define IMU_INT3_GPIO 6
+
+#define I2C_SDA_GPIO 7
+#define I2C_SCL_GPIO 5
 
 // LEDs definitions for Shoe sensor v2
 #define LEDS_NUMBER 0
