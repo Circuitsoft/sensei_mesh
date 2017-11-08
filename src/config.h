@@ -1,6 +1,7 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#include "assert.h"
 #include "fds.h"
 #include "fstorage.h"
 #include <stdbool.h>
@@ -38,10 +39,22 @@ public:
   bool ToStruct(app_config_t *config_struct);
   uint8_t FromStruct(app_config_t *config_struct);
 
-  uint8_t GetSensorID();
-  uint8_t GetMeshChannel();
-  bool GetSerialEnabled();
-  bool GetSleepEnabled();
+  inline uint8_t GetSensorID() {
+    APP_ASSERT(loaded, "Config was not loaded (call `Init()`)");
+    return backing_struct.sensor_id;
+  }
+  inline uint8_t GetMeshChannel() {
+    APP_ASSERT(loaded, "Config was not loaded (call `Init()`)");
+    return backing_struct.mesh_channel;
+  }
+  inline bool GetSerialEnabled() {
+    APP_ASSERT(loaded, "Config was not loaded (call `Init()`)");
+    return backing_struct.serial_enabled;
+  }
+  inline bool GetSleepEnabled() {
+    APP_ASSERT(loaded, "Config was not loaded (call `Init()`)");
+    return backing_struct.sleep_enabled;
+  }
 
   void SetSensorID(uint8_t id);
   void SetMeshChannel(uint8_t channel);
