@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define MMA8541
+//#define MMA8541
 
 // LEDs definitions for Shoe sensor v2
 #define LEDS_NUMBER 0

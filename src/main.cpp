@@ -258,7 +258,7 @@ int main(void) {
     auto idle =
         rtc_to_walltime(time - last_jostle) > INACTIVITY_THRESHOLD_SECONDS;
 #else
-    auto idle = true;
+    auto idle = false;
 #endif
     if (mesh_running && idle) {
       log("Stopping mesh");
