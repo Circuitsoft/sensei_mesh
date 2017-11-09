@@ -10,7 +10,10 @@ from sensei import *
 import yaml
 import os
 
-class Uploader(object):
+# Note, this utility uses time since last update received, not since timestamp
+# of update.
+
+class Checkin_Timer(object):
     # Synchronize once every minute
     TIME_SYNC_INTERVAL=60
     NO_DATA_TIMEOUT=35
