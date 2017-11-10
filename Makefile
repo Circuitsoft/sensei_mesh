@@ -481,8 +481,8 @@ install_nordic_full: $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_NAME)_merged.hex
 	$(NO_ECHO)nrfjprog -r -f NRF52 $(JLINK_SERIAL_NUMBER)
 
 # Flash nrf52 softdevice
-.PHONY: flash_softdevice_nrf52
-flash_softdevice_nrf52:
+.PHONY: flash_softdevice
+flash_softdevice:
 	@echo Flashing: $(NRF52_SOFTDEVICE_HEX)
 	nrfjprog --program $(NRF52_SOFTDEVICE_HEX) -f nrf52 --sectorerase $(JLINK_SERIAL_NUMBER)
 	nrfjprog --reset -f nrf52 $(JLINK_SERIAL_NUMBER)
