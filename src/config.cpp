@@ -1,5 +1,4 @@
 #include "config.h"
-#include "assert.h"
 #include "fds.h"
 #include "fstorage.h"
 #include "leds.h"
@@ -261,24 +260,6 @@ uint8_t Config_t::FromStruct(app_config_t *config_struct) {
   backing_struct.serial_enabled = config_struct->serial_enabled;
   backing_struct.sleep_enabled = config_struct->sleep_enabled;
   save();
-}
-
-// Getters operate entirely out of RAM
-uint8_t Config_t::GetSensorID() {
-  APP_ASSERT(loaded, "Config was not loaded (call `Init()`)");
-  return backing_struct.sensor_id;
-}
-uint8_t Config_t::GetMeshChannel() {
-  APP_ASSERT(loaded, "Config was not loaded (call `Init()`)");
-  return backing_struct.mesh_channel;
-}
-bool Config_t::GetSerialEnabled() {
-  APP_ASSERT(loaded, "Config was not loaded (call `Init()`)");
-  return static_cast<bool>(backing_struct.serial_enabled);
-}
-bool Config_t::GetSleepEnabled() {
-  APP_ASSERT(loaded, "Config was not loaded (call `Init()`)");
-  return static_cast<bool>(backing_struct.sleep_enabled);
 }
 
 // Setters persist values immediately and update RAM representation

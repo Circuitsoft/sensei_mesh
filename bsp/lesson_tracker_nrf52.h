@@ -5,8 +5,8 @@
 extern "C" {
 #endif
 
-#define MMA8541
-#define JOSTLE_DETECT
+//#define MMA8541
+//#define JOSTLE_DETECT
 
 // LEDs definitions for Lesson Tracker v2
 #define LEDS_NUMBER 0
