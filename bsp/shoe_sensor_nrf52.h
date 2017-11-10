@@ -14,6 +14,18 @@ extern "C" {
 #define I2C_SDA_GPIO 7
 #define I2C_SCL_GPIO 5
 
+// Battery ADC Config
+#define BATTERY_SENSE_PIN NRF_SAADC_INPUT_VDD
+#define BATTERY_SENSE_ADC_GAIN NRF_SAADC_GAIN1_5
+#define BATTERY_SENSE_ADC_RESOLUTION NRF_SAADC_RESOLUTION_12BIT
+// ADC scale =  GAIN/REFERENCE * 2^(RESOLUTION)
+#define BATTERY_SENSE_ADC_SCALE ((1/5.0)/0.6*(1<<12))
+// No voltage divider
+#define BATTERY_SENSE_EXTERNAL_SCALE 1
+
+#define BATTERY_MAX_VOLTAGE 3.3
+#define BATTERY_MIN_VOLTAGE 2.1
+
 // LEDs definitions for Shoe sensor v2
 #define LEDS_NUMBER 0
 

@@ -163,7 +163,7 @@ class AciEventTX(AciEventNew):
 class HeartbeatMsg(object):
     def __init__(self, data):
         if len(data) != 18:
-            print(str.format("Error: expected 18 bytes, got %s" %(data)))
+            raise ValueError("Error: expected 18 bytes, got %s" % data)
         (self.rssi, self.received_at, self.received_at_ms, self.local_clock_version, self.sensor_id, self.epoch_seconds, self.epoch_ms, self.clock_version) = unpack('<BiHHBiHH', bytearray(data))
 
     def __repr__(self):

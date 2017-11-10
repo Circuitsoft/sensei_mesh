@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define SERIAL_DATA_MAX_LEN (36)
+#define SERIAL_DATA_MAX_LEN (72)
 
 #include "serial_command.h"
 #include "serial_evt.h"

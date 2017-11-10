@@ -81,6 +81,17 @@ void HardFault_Handler(void) {
   error_loop();
 }
 
+void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
+{
+  error_info_t * p_error_info = (error_info_t *)info;
+  logf("Error: %d, %s line %d", p_error_info->err_code, p_error_info->p_file_name, p_error_info->line_num);
+  for (;;)
+  {
+      // No implementation needed.
+  }
+}
+
+
 /**
 * @brief Mesh framework event handler.
 *
@@ -232,7 +243,7 @@ int main(void) {
     sensor_init();
   }
 
-  logf("Battery is %d percent", (int)(get_battery_adc() / 2.56));
+  logf("Battery is %fV", (int)(get_battery_voltage()));
 
   error_code = rbc_mesh_value_enable(MESH_CONTROL_HANDLE);
   APP_ERROR_CHECK(error_code);
