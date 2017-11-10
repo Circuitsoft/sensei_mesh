@@ -20,8 +20,8 @@ extern "C" {
 #define BATTERY_SENSE_ADC_RESOLUTION NRF_SAADC_RESOLUTION_12BIT
 // ADC scale =  GAIN/REFERENCE * 2^(RESOLUTION)
 #define BATTERY_SENSE_ADC_SCALE ((1/6.0)/0.6*(1<<12))
-// Voltage divider.  R1 = 4 MOhm, R2 = 10 MOhm
-#define BATTERY_SENSE_EXTERNAL_SCALE (10.0 / (4.0 + 10.0))
+// Voltage divider.  R1 = 3.9 MOhm, R2 = 10 MOhm
+#define BATTERY_SENSE_EXTERNAL_SCALE (10.0 / (3.9 + 10.0))
 //#define BATTERY_SENSE_EXTERNAL_SCALE (1.0 / (1.0 + 1.0))
 
 #define BATTERY_MAX_VOLTAGE 4.2
