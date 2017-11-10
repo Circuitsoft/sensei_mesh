@@ -6,7 +6,7 @@ extern "C" {
 #endif
 #include "stdint.h"
 
-uint8_t get_battery_adc();
+float get_battery_voltage();
 
 #ifdef __cplusplus
 }

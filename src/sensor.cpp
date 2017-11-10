@@ -21,6 +21,7 @@ void sensor_init() {
 #endif
 
 #ifdef JOSTLE_DETECT
+  log("jostle detect init");
   jostle_detect_init();
 #endif
 
@@ -36,9 +37,12 @@ void sensor_warmup_event() {
 }
 
 void gather_sensor_data() {
+  float voltage;
   memset(&m_value, 0, sizeof(sensor_value_t));
   m_value.valid_time = get_clock_time();
-  m_value.battery = get_battery_adc();
+  voltage = get_battery_voltage();
+  // Convert to percent
+  m_value.battery = (voltage - BATTERY_MAX_VOLTAGE) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE);
 
 #ifdef JOSTLE_DETECT
   if (jostle_detect_get_flag()) {
