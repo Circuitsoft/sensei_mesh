@@ -27,10 +27,11 @@ extern "C" {
 #define BATTERY_MAX_VOLTAGE 4.2
 #define BATTERY_MIN_VOLTAGE 2.7
 
-// LEDs definitions for Lesson Tracker v2
+// Disable BSP
 #define LEDS_NUMBER 0
-
 #define BUTTONS_NUMBER 0
+
+#define STATUS_LED_PIN 8
 
 #define RX_PIN_NUMBER 3
 #define TX_PIN_NUMBER 2

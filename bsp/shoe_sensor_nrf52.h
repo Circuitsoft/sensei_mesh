@@ -26,10 +26,11 @@ extern "C" {
 #define BATTERY_MAX_VOLTAGE 3.3
 #define BATTERY_MIN_VOLTAGE 2.1
 
-// LEDs definitions for Shoe sensor v2
+// Disable BSP
 #define LEDS_NUMBER 0
-
 #define BUTTONS_NUMBER 0
+
+#define STATUS_LED_PIN 4
 
 #define RX_PIN_NUMBER 3
 #define TX_PIN_NUMBER 2
