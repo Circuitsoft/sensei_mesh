@@ -39,6 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "transport_control.h"
 #include "event_handler.h"
 #include "rbc_mesh_common.h"
+#include "assert.h"
 
 #ifdef MESH_DFU
 #include "dfu_app.h"
@@ -176,7 +177,7 @@ static void timeslot_end(void)
     m_end_timer_triggered = false;
     CLEAR_PIN(PIN_IN_TS);
     CLEAR_PIN(PIN_IN_CB);
-    
+
 #ifdef NRF52
     NRF_TIMER0->TASKS_STOP = 0;
     NRF_TIMER0->TASKS_SHUTDOWN = 1;
@@ -459,7 +460,11 @@ uint32_t timeslot_init(nrf_clock_lfclksrc_t lfclksrc)
 
 void timeslot_stop(void)
 {
-    APP_ERROR_CHECK(sd_radio_session_close());
+    uint32_t res;
+    res = sd_radio_session_close();
+    if (res != NRF_SUCCESS) {
+      logf("Couldn't close radio session: %s", ERR_TO_STR(res));
+    }
 
     m_timeslot_forced_command = TS_FORCED_COMMAND_STOP;
     uint32_t was_masked;
@@ -489,7 +494,12 @@ void timeslot_restart(void)
 
 uint32_t timeslot_resume(void)
 {
-    APP_ERROR_CHECK(sd_radio_session_open(&radio_signal_callback));
+    uint32_t res;
+    res = sd_radio_session_open(&radio_signal_callback);
+    if(res != NRF_SUCCESS) {
+      logf("Couldn't open radio session: %s", ERR_TO_STR(res));
+      return res;
+    }
     m_timeslot_forced_command = TS_FORCED_COMMAND_NONE;
 
     if (timeslot_is_in_ts())
@@ -528,4 +538,3 @@ bool timeslot_is_in_ts(void)
 {
     return m_is_in_timeslot;
 }
-

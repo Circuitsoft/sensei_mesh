@@ -16,6 +16,7 @@
 #include "leds.h"
 #include "mesh_control.h"
 #include "nrf_gpio.h"
+#include "nrf_delay.h"
 #include "power_manage.h"
 #include "rtc.h"
 #include "scheduler.h"
@@ -55,6 +56,7 @@ static nrf_clock_lf_cfg_t clock_lf_cfg = NRF_CLOCK_LFCLKSRC;
 
 /** @brief General error handler. */
 static inline void error_loop(void) {
+  log("In error_loop");
   TOGGLE_LED(LED_RED);
   __disable_irq();
   while (true) {
@@ -83,8 +85,10 @@ void HardFault_Handler(void) {
 
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
+  nrf_gpio_pin_clear(STATUS_LED_PIN); // Turn on status led
+
   error_info_t * p_error_info = (error_info_t *)info;
-  logf("Error: %d, %s line %d", p_error_info->err_code, p_error_info->p_file_name, p_error_info->line_num);
+  logf("!!Fault!!: %s, %s line %d", ERR_TO_STR(p_error_info->err_code), p_error_info->p_file_name, p_error_info->line_num);
   for (;;)
   {
       // No implementation needed.
@@ -145,6 +149,7 @@ static void packet_peek_cb(rbc_mesh_packet_peek_params_t *params) {
 }
 
 int main(void) {
+
 
 #if DEBUG == 1
 #ifdef JLINK_SN
@@ -207,7 +212,6 @@ int main(void) {
 
   error_code = rbc_mesh_init(init_params);
   APP_ERROR_CHECK(error_code);
-  // led_config(LED_GREEN, 1);
 
   // This has to come after rbc_mesh_init for some reason.  Otherwise we
   // get a HardFault when rbc_mesh_init is called
@@ -226,6 +230,10 @@ int main(void) {
   // Inits structures for sending heartbeat
   heartbeat_init(Config.DEFAULT_MESH_CHANNEL);
 
+  // Configure status LED
+  nrf_gpio_cfg_output(STATUS_LED_PIN);
+  nrf_gpio_pin_set(STATUS_LED_PIN); // Low = On, High = Off
+
   /* Initialize mesh ACI */
   mesh_aci_init();
   mesh_aci_app_cmd_handler_set(app_cmd_handler);
@@ -243,7 +251,8 @@ int main(void) {
     sensor_init();
   }
 
-  logf("Battery is %fV", (int)(get_battery_voltage()));
+  get_battery_voltage();
+
 
   error_code = rbc_mesh_value_enable(MESH_CONTROL_HANDLE);
   APP_ERROR_CHECK(error_code);
@@ -254,7 +263,7 @@ int main(void) {
 
   log("Main loop");
   rbc_mesh_event_t evt;
-  bool mesh_running = true;
+  bool mesh_running = false;
   while (true) {
     if (rbc_mesh_event_get(&evt) == NRF_SUCCESS) {
       rbc_mesh_event_handler(&evt);
