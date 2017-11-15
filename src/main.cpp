@@ -245,6 +245,7 @@ int main(void) {
 
   /* Enable our handle */
   if (Config.GetSensorID() > 0) {
+    logf("Sensor ID = %d", Config.GetSensorID());
     sensor_init();
   } else {
     log("WARNING: Sensor ID not set");
@@ -252,7 +253,6 @@ int main(void) {
   }
 
   get_battery_voltage();
-
 
   error_code = rbc_mesh_value_enable(MESH_CONTROL_HANDLE);
   APP_ERROR_CHECK(error_code);

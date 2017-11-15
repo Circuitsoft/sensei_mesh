@@ -40,9 +40,11 @@ void gather_sensor_data() {
   float voltage;
   memset(&m_value, 0, sizeof(sensor_value_t));
   m_value.valid_time = get_clock_time();
+  log("checking voltage");
   voltage = get_battery_voltage();
   // Convert to percent
-  m_value.battery = (voltage - BATTERY_MAX_VOLTAGE) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE);
+  m_value.battery = (voltage - BATTERY_MIN_VOLTAGE) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100;
+  logf("battery percent = %d", m_value.battery);
 
 #ifdef JOSTLE_DETECT
   if (jostle_detect_get_flag()) {

@@ -13,7 +13,7 @@ import os
 # Note, this utility uses time since last update received, not since timestamp
 # of update.
 
-class Checkin_Timer(object):
+class CheckinTimer(object):
     # Synchronize once every minute
     TIME_SYNC_INTERVAL=60
     NO_DATA_TIMEOUT=35
@@ -111,10 +111,10 @@ class Checkin_Timer(object):
             self.get_sensor_updates()
             time.sleep(0.5)
 
-            if time.time() - self.last_time_sync > Uploader.TIME_SYNC_INTERVAL:
+            if time.time() - self.last_time_sync > CheckinTimer.TIME_SYNC_INTERVAL:
                 self.sync_time()
 
-            if time.time() - self.last_event > Uploader.NO_DATA_TIMEOUT:
+            if time.time() - self.last_event > CheckinTimer.NO_DATA_TIMEOUT:
                 self.restart_serial()
 
 if __name__ == '__main__':
@@ -124,7 +124,7 @@ if __name__ == '__main__':
         with open(config_path, 'r') as stream:
             try:
                 sensei_config = yaml.load(stream)
-                uploader = Uploader(sensei_config)
+                uploader = CheckinTimer(sensei_config)
                 uploader.run()
             except yaml.YAMLError as exc:
                 print(exc)

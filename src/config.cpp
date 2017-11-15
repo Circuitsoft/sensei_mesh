@@ -11,7 +11,8 @@
 // module)
 
 volatile bool gc_complete;
-volatile bool write_complete;
+volatile bool write_pending;
+volatile bool update_pending;
 volatile bool init_complete;
 
 static void fds_event_handler(fds_evt_t const *const p_fds_evt) {
@@ -28,8 +29,12 @@ static void fds_event_handler(fds_evt_t const *const p_fds_evt) {
     }
     break;
   case FDS_EVT_WRITE:
-    write_complete = true;
+    write_pending = false;
     log("write complete");
+    break;
+  case FDS_EVT_UPDATE:
+    update_pending = false;
+    log("update complete");
     break;
   case FDS_EVT_GC:
     gc_complete = true;
@@ -63,7 +68,7 @@ ret_code_t Config_t::write(uint8_t *data, uint8_t length) {
 
   // fds_record_write runs asynchronously. Buffer above needs to stay in memory
   // until the write is complete (we get a notification via the event handler)
-  write_complete = false;
+  write_pending = true;
   ret_code_t ret = fds_record_write(&record_desc, &record);
   if (ret == FDS_ERR_NO_SPACE_IN_FLASH) {
     log("Performing a flash garbage collection operation");
@@ -161,7 +166,7 @@ ret_code_t Config_t::update(uint8_t *data, uint8_t length) {
     // fds_record_update runs asynchronously. Buffer above needs to stay in
     // memory until the write is complete (we get a notification via the event
     // handler)
-    write_complete = false;
+    update_pending = true;
     err = fds_record_update(&record_desc, &record);
     if (err == FDS_ERR_NO_SPACE_IN_FLASH) {
       // We're all out of space; run garbage collection
@@ -261,6 +266,11 @@ uint8_t Config_t::FromStruct(app_config_t *config_struct) {
   backing_struct.sleep_enabled = config_struct->sleep_enabled;
   save();
 }
+
+bool Config_t::IsUpdatePending() {
+  return write_pending || update_pending;
+}
+
 
 // Setters persist values immediately and update RAM representation
 void Config_t::SetSensorID(uint8_t id) {

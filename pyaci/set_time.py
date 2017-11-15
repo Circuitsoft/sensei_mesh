@@ -11,8 +11,7 @@ def set_time(serial_device):
     # Wait for serial connection to be ready
     time.sleep(2)
     cmd = sensei_cmd.SetTime()
-    data = cmd.serialize()
-    aci.write_aci_cmd(AciCommand.AciAppCommand(data=data,length=len(data)+1))
+    sensei_cmd.run(cmd)
     aci.stop()
 
 if __name__ == '__main__':

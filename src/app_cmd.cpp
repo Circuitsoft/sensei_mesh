@@ -28,6 +28,11 @@ uint16_t app_cmd_handler(uint8_t *data, uint8_t len, uint8_t *response,
     *response_length = sizeof(app_config_t);
     error_code = NRF_SUCCESS;
   } break;
+  case APP_CMD_OPCODE_IS_CONFIG_UPDATE_PENDING: {
+    *((bool *)response) = Config.IsUpdatePending();
+    *response_length = sizeof(bool);
+    error_code = NRF_SUCCESS;
+  } break;
   default:
     error_code = NRF_ERROR_NOT_SUPPORTED;
   }
