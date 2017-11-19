@@ -226,6 +226,13 @@ void jostle_detect_init() {
                                          (10<<1)); // sleep_dur = 10ms
   write_acc_register(BMX055_ACC_PMU_LOW_POWER, (1<<6)); // lowpower_mode = 2
 
+#ifdef JOSTLE_WAKEUP
+  // Setup motion detection
+  write_acc_register(BMX055_ACC_INT_5, 3); // 2 consecutive samples for slope detection, no slow-motion detection
+  write_acc_register(BMX055_ACC_INT_6, JOSTLE_SLOPE_THRESH); // Defined per-device
+  write_acc_register(BMX055_ACC_INT_EN_0, 7); // Enable slope on X, Y, and Z
+#endif // JOSTLE_WAKEUP
+
   // Save power after configuring accelerometer
   i2c_shutdown();
 
@@ -285,6 +292,22 @@ void jostle_detect_check()
   if (fabs(veryslow_acc - running_acc) > JOSTLE_AVERAGE_THRESH)
     motion_handler(0, 0); // unused parameters
 }
+
+#ifdef JOSTLE_WAKEUP
+void jostle_detect_enable()
+{
+  i2c_init();
+  write_acc_register(BMX055_ACC_INT_MAP_0, 4); // Enable slope on INT1
+  i2c_shutdown();
+}
+
+void jostle_detect_disable()
+{
+  i2c_init();
+  write_acc_register(BMX055_ACC_INT_MAP_0, 0); // Disable slope on INT1
+  i2c_shutdown();
+}
+#endif // JOSTLE_WAKEUP
 
 bool jostle_detect_get_flag() { return jostle_detected; }
 

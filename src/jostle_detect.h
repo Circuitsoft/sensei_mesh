@@ -14,6 +14,10 @@ void jostle_detect_init();
 bool jostle_detect_get_flag();
 void jostle_detect_clear_flag();
 void jostle_detect_check();
+#ifdef JOSTLE_WAKEUP
+void jostle_detect_enable();
+void jostle_detect_disable();
+#endif // JOSTLE_WAKEUP
 
 #ifdef __cplusplus
 }
