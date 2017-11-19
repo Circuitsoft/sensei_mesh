@@ -6,6 +6,7 @@
 #include "config.h"
 #include "rand.h"
 #include "heartbeat.h"
+#include "jostle_detect.h"
 #include "sensor.h"
 #include "rbc_mesh.h"
 #include "handles.h"
@@ -70,6 +71,10 @@ static void periodic_timer_cb(void * p_context)
 
     delay_to_heartbeat();
   }
+
+#ifdef JOSTLE_DETECT
+  jostle_detect_check();
+#endif
 }
 
 static void delay_to_heartbeat() {

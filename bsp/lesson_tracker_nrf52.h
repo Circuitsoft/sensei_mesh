@@ -5,7 +5,8 @@
 extern "C" {
 #endif
 
-//#define JOSTLE_DETECT
+#define JOSTLE_DETECT
+#define JOSTLE_AVERAGE_THRESH 0.03f
 
 #define BMX055
 #define IMU_INT1_GPIO 20

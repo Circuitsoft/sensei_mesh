@@ -7,6 +7,7 @@
 #include "bsp.h"
 #include "i2c.h"
 #include "nrf_drv_gpiote.h"
+#include "nrf_delay.h"
 #include "rtc.h"
 
 #define BMX055_ADDR_ACCEL (0x18)
@@ -176,73 +177,137 @@
 static bool jostle_detected;
 
 
-// static bool write_register(uint8uint8_t reg, uint8_t value) {
-//   return i2c_write_reg(BMX055_ADDR_ACCEL, reg, value);
-// }
-//
-// static uint8_t read_register(uint8_t reg) {
-//   return i2c_read_reg(MMA8451_DEFAULT_ADDRESS, reg);
-// }
+static bool write_acc_register(uint8_t reg, uint8_t value) {
+  return i2c_write_reg(BMX055_ADDR_ACCEL, reg, value);
+}
+
+static uint8_t read_acc_register(uint8_t reg) {
+  return i2c_read_reg(BMX055_ADDR_ACCEL, reg);
+}
 
 volatile uint32_t last_jostle;
 
 // Motion interrupt pin handler
 void motion_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action) {
-  log("motion handler");
-  // last_jostle = rtc_value();
-  // log("jostle detected");
-  //
-  // i2c_init();
-  // // Read interrupt source register (clears interrupt)
-  // read_register(MMA8451_REG_FF_MT_SRC);
-  // i2c_shutdown();
-  //
-  // jostle_detected = true;
+  log("motion handler int");
+
+  last_jostle = rtc_value();
+  log("jostle detected");
+
+  jostle_detected = true;
 }
 
 void jostle_detect_init() {
+  log("jostle_detect_init");
   i2c_init();
 
   ret_code_t err_code;
 
+  // Configure bmx055
+  // reset
+  log("reset BMX055");
+  write_acc_register(BMX055_ACC_BGW_SOFTRESET, 0xB6);
+  nrf_delay_us(2048); // Wait for initialization
+
+  uint8_t data = read_acc_register(BMX055_ACC_WHOAMI);
+
+  if (data) {
+    logf("BMX055_ACC addr = 0x%x", data);
+  } else {
+    log("Could not read accelerometer");
+  }
+
+  // enable 4G range (datasheet sec. 5.2.1)
+  write_acc_register(BMX055_ACC_PMU_RANGE, 0x05);
+  // enable 7.81Hz BW (datasheet sec. 5.2.1)
+  write_acc_register(BMX055_ACC_PMU_BW, 8);
+  // Low power mode
+  write_acc_register(BMX055_ACC_PMU_LPW, (1<<6) | // lowpower_en
+                                         (10<<1)); // sleep_dur = 10ms
+  write_acc_register(BMX055_ACC_PMU_LOW_POWER, (1<<6)); // lowpower_mode = 2
+
+#ifdef JOSTLE_WAKEUP
+  // Setup motion detection
+  write_acc_register(BMX055_ACC_INT_5, 3); // 2 consecutive samples for slope detection, no slow-motion detection
+  write_acc_register(BMX055_ACC_INT_6, JOSTLE_SLOPE_THRESH); // Defined per-device
+  write_acc_register(BMX055_ACC_INT_EN_0, 7); // Enable slope on X, Y, and Z
+#endif // JOSTLE_WAKEUP
+
+  // Save power after configuring accelerometer
+  i2c_shutdown();
+
+  // Set up Interrupt Line
+  log("Configure BMX055 Interrupt");
   err_code = nrf_drv_gpiote_init();
   APP_ERROR_CHECK(err_code);
 
-  nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(false);
+  nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_HITOLO(false);
   in_config.pull = NRF_GPIO_PIN_PULLUP;
 
   err_code = nrf_drv_gpiote_in_init(IMU_INT1_GPIO, &in_config, motion_handler);
   APP_ERROR_CHECK(err_code);
 
   nrf_drv_gpiote_in_event_enable(IMU_INT1_GPIO, true);
+}
 
-  // Configure mma8451
-  // reset
+static inline float fabs(float val)
+{
+  return (val < 0) ? 0 - val : val;
+}
 
-  uint8_t data = 0;
+void jostle_detect_check()
+{
+  i2c_init();
+  int16_t x, y, z;
+  float fx, fy, fz, facc;
+  static float running_acc, veryslow_acc;
+  static bool need_init = true;
 
-  if (i2c_read_data(BMX055_ADDR_ACCEL, BMX055_ACC_WHOAMI, &data,1)) {
-    logf("BMX055_ACC addr = 0x%x", data);
-  } else {
-    log("Could not read accelerometer");
+  x  = ((int16_t)read_acc_register(BMX055_ACC_D_X_LSB)) >> 4;
+  x |= ((int16_t)read_acc_register(BMX055_ACC_D_X_MSB)) << 4;
+  y  = ((int16_t)read_acc_register(BMX055_ACC_D_Y_LSB)) >> 4;
+  y |= ((int16_t)read_acc_register(BMX055_ACC_D_Y_MSB)) << 4;
+  z  = ((int16_t)read_acc_register(BMX055_ACC_D_Z_LSB)) >> 4;
+  z |= ((int16_t)read_acc_register(BMX055_ACC_D_Z_MSB)) << 4;
+  i2c_shutdown();
+
+  fx = ((float)x) / 4096.0f;
+  fy = ((float)y) / 4096.0f;
+  fz = ((float)z) / 4096.0f;
+  facc = fx*fx + fy*fy + fz*fz;
+  asm("vsqrt.f32 %0, %0" : "=w" (facc) : "w" (facc) );
+
+  if (need_init)
+  {
+    veryslow_acc = running_acc = facc;
+    need_init = false;
   }
 
-  // enable 4G range
-  // Low power mode
-  // Setup motion detection
-  // Setup interrupts
-  // Turn on orientation config
-  // write_register(MMA8451_REG_PL_CFG, 0x40);
+  running_acc *= 0.7;
+  running_acc += facc * 0.3;
 
-  // ASLP_RATE = 50hz
-  // ODR = 50hz
-  // LNOISE = 1
-  // F_READ = normal
-  // ACTIVE = active
+  veryslow_acc *= 0.7;
+  veryslow_acc += running_acc * 0.3;
 
-  // Save power after configuring accelerometer
+  if (fabs(veryslow_acc - running_acc) > JOSTLE_AVERAGE_THRESH)
+    motion_handler(0, 0); // unused parameters
+}
+
+#ifdef JOSTLE_WAKEUP
+void jostle_detect_enable()
+{
+  i2c_init();
+  write_acc_register(BMX055_ACC_INT_MAP_0, 4); // Enable slope on INT1
   i2c_shutdown();
 }
+
+void jostle_detect_disable()
+{
+  i2c_init();
+  write_acc_register(BMX055_ACC_INT_MAP_0, 0); // Disable slope on INT1
+  i2c_shutdown();
+}
+#endif // JOSTLE_WAKEUP
 
 bool jostle_detect_get_flag() { return jostle_detected; }
 
