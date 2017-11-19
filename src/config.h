@@ -36,6 +36,9 @@ public:
   // Returns true on success
   bool Init();
 
+  // Checks if config update is pending
+  bool IsUpdatePending();
+
   bool ToStruct(app_config_t *config_struct);
   uint8_t FromStruct(app_config_t *config_struct);
 

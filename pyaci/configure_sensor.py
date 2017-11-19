@@ -11,12 +11,29 @@ def configure_sensor(serial_device, sensor_id, serial_enabled, channel, sleep_en
     # Wait for serial connection to be ready
     time.sleep(2)
     cmd = sensei_cmd.SetConfig(sensor_id, serial_enabled, channel, sleep_enabled)
-    data = cmd.serialize()
-    aci.write_aci_cmd(AciCommand.AciAppCommand(data=data,length=len(data)+1))
+    sensei_cmd.run(aci, cmd)
 
     # Wait for flash to be written
-    time.sleep(2)
-    aci.write_aci_cmd(AciCommand.AciRadioReset())
+    check_status_cmd = sensei_cmd.IsConfigUpdatePending()
+    did_set_id = False
+    print("Configuring sensor with id: %d" % sensor_id)
+    while True:
+        events = sensei_cmd.run(aci, check_status_cmd)
+        if events and len(events) > 0:
+            response = events[0]
+            if len(response.Data) != 1:
+                print("Unexpected response: %s, len(events) = %d" % (response, len(events)))
+                # continue
+            elif response.Data[0] == 0:
+                did_set_id = True
+                break
+        else:
+            print("No response back from board!")
+            break
+        time.sleep(1);
+
+    if did_set_id:
+        aci.write_aci_cmd(AciCommand.AciRadioReset())
 
     aci.stop()
 

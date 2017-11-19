@@ -12,6 +12,7 @@ typedef enum {
   APP_CMD_OPCODE_SET_TIME = 0x02,
   APP_CMD_OPCODE_SET_CONFIG = 0x03,
   APP_CMD_OPCODE_GET_CONFIG = 0x04,
+  APP_CMD_OPCODE_IS_CONFIG_UPDATE_PENDING = 0x05,
 } app_cmd_opcode_t;
 
 typedef __packed_armcc struct {

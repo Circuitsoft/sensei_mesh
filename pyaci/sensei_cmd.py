@@ -1,7 +1,12 @@
 import time
 import struct
+from aci import AciCommand
 
 MESH_HANDLE_MESH_CONTROL = 0x0201
+
+def run(aci, cmd, timeout=1):
+    data = cmd.serialize()
+    return aci.write_aci_cmd(AciCommand.AciAppCommand(data=data,length=len(data)+1), timeout=timeout)
 
 class SetTime(object):
     OpCode = 0x02
@@ -32,6 +37,12 @@ class SetConfig(object):
 
 class GetConfig(object):
     OpCode = 0x04
+
+    def serialize(self):
+        return struct.pack("B", self.OpCode)
+
+class IsConfigUpdatePending(object):
+    OpCode = 0x05
 
     def serialize(self):
         return struct.pack("B", self.OpCode)

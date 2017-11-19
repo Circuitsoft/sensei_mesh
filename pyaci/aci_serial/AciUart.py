@@ -56,11 +56,11 @@ class AciDevice(object):
                 logging.error('Exception in pkt handler %r', fun)
                 logging.error('traceback: %s', traceback.format_exc())
 
-    def write_aci_cmd(self, cmd):
+    def write_aci_cmd(self, cmd, timeout=1):
         retval = None
         if isinstance(cmd,AciCommand.AciCommandPkt):
             self.WriteData(cmd.serialize())
-            retval = self.Wait(self)
+            retval = self.Wait(self, timeout)
             if retval == None:
                 logging.info('cmd %s, timeout waiting for event' % (cmd.__class__.__name__))
         else:
