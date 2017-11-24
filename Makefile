@@ -170,6 +170,9 @@ CXXFLAGS += -MMD
 LDFLAGS += -mcpu=cortex-m4
 LDFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
+# Use NFC pins as IO
+COMMON_FLAGS += -DCONFIG_NFCT_PINS_AS_GPIOS
+
 endif # SOC_FAMILY
 
 # TODO: Add nRF51 build for SD130

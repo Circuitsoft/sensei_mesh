@@ -234,6 +234,10 @@ int main(void) {
   nrf_gpio_cfg_output(STATUS_LED_PIN);
   nrf_gpio_pin_set(STATUS_LED_PIN); // Low = On, High = Off
 
+  // Extra gpio pin that can be used for testing
+  // nrf_gpio_cfg_output(EXTRA_GPIO_PIN);
+  // nrf_gpio_pin_set(EXTRA_GPIO_PIN);
+
   /* Initialize mesh ACI */
   mesh_aci_init();
   mesh_aci_app_cmd_handler_set(app_cmd_handler);
