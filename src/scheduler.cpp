@@ -68,6 +68,7 @@ static void periodic_timer_cb(void * p_context)
     GET_APP_TIMER(m_clock_second_start_counter_value);
     m_scheduler_state = SCHEDULER_STATE_BEFORE_HB;
     rbc_mesh_start();
+    nrf_gpio_pin_clear(STATUS_LED_PIN);
 
     delay_to_heartbeat();
   }
@@ -132,6 +133,7 @@ static void offset_timer_cb(void * p_context) {
 
   switch (m_scheduler_state) {
     case SCHEDULER_STATE_BEFORE_HB:
+      nrf_gpio_pin_set(STATUS_LED_PIN); // Turn off status led
       do_heartbeat();
       m_scheduler_state = SCHEDULER_STATE_AFTER_HB;
       delay_to_reporting();
