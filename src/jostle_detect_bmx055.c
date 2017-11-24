@@ -209,24 +209,38 @@ void jostle_detect_init() {
   log("jostle_detect_init");
   i2c_init();
 
-  ret_code_t err_code;
-
   // Configure bmx055
   // reset
   log("reset BMX055");
   write_acc_register(BMX055_ACC_BGW_SOFTRESET, 0xB6);
+
+  // These block at times.
+  // write_gyr_register(BMX055_GYRO_BGW_SOFTRESET, 0xB6);
+  // write_mag_register(BMX055_MAG_PWR_CNTL1, 0x83);
+
   nrf_delay_us(2048); // Wait for initialization
 
-  uint8_t data = read_acc_register(BMX055_ACC_WHOAMI);
-
-  if (data) {
-    logf("BMX055_ACC addr = 0x%x", data);
-  } else {
-    log("Could not read accelerometer");
+  if (!read_acc_register(BMX055_ACC_WHOAMI) == 0xFA) {
+    log("Accelerometer WHOAMI failed.");
+    return;
   }
 
+  if (!read_acc_register(BMX055_GYRO_WHOAMI) == 0x0F) {
+    log("Gyroscope WHOAMI failed.");
+    return;
+  }
+
+  if (!read_acc_register(BMX055_MAG_WHOAMI) == 0x32) {
+    log("Magnetometer WHOAMI failed.");
+    return;
+  }
+
+  log("IMU online");
+
+  log("Putting gyro to sleep");
   write_gyr_register(BMX055_GYRO_LPM1, 1 << 5); // Put Gyro to sleep
-  write_mag_register(BMX055_MAG_PWR_CNTL1, 0); // Put magentometer to sleep
+  log("Putting magnetometer to sleep");
+  write_mag_register(BMX055_MAG_PWR_CNTL1, 0); // Put magnetometer to sleep
 
 #ifdef JOSTLE_DETECT
   // enable 4G range (datasheet sec. 5.2.1)
@@ -246,6 +260,7 @@ void jostle_detect_init() {
 #endif // JOSTLE_WAKEUP
 
 #else  // JOSTLE_DETECT
+log("Putting accelerometer to sleep");
   write_acc_register(BMX055_ACC_PMU_LPW, 1 << 7); // Put accelerometer to sleep
 #endif // JOSTLE_DETECT
 
@@ -253,8 +268,9 @@ void jostle_detect_init() {
   i2c_shutdown();
 
   // Set up Interrupt Line
+#ifdef JOSTLE_DETECT
   log("Configure BMX055 Interrupt");
-  err_code = nrf_drv_gpiote_init();
+  ret_code_t err_code = nrf_drv_gpiote_init();
   APP_ERROR_CHECK(err_code);
 
   nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_HITOLO(false);
@@ -264,6 +280,7 @@ void jostle_detect_init() {
   APP_ERROR_CHECK(err_code);
 
   nrf_drv_gpiote_in_event_enable(IMU_INT1_GPIO, true);
+#endif
 }
 
 static inline float fabs(float val)
