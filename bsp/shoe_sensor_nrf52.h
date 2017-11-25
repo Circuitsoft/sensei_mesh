@@ -24,12 +24,16 @@ extern "C" {
 #define BATTERY_SENSE_PIN NRF_SAADC_INPUT_VDD
 #define BATTERY_SENSE_ADC_GAIN NRF_SAADC_GAIN1_5
 #define BATTERY_SENSE_ADC_RESOLUTION NRF_SAADC_RESOLUTION_12BIT
+// GAIN = 1/5
+// REFERENCE = 0.6V
 // ADC scale =  GAIN/REFERENCE * 2^(RESOLUTION)
 #define BATTERY_SENSE_ADC_SCALE ((1/5.0)/0.6*(1<<12))
 // No voltage divider
 #define BATTERY_SENSE_EXTERNAL_SCALE 1
 
-#define BATTERY_MAX_VOLTAGE 3.3
+// Coin cells seem to start at 2.72, when current is being used
+#define BATTERY_MAX_VOLTAGE 2.72
+// nrf51 can go to 1.7, but imu can only go to 2.4.
 #define BATTERY_MIN_VOLTAGE 2.1
 
 // Disable BSP

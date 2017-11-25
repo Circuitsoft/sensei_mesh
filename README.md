@@ -28,7 +28,7 @@ Program a master clock device that doesn't sleep, listens all the time, and broa
 `make program SERIAL_PORT=/dev/cu.usbserial-AI04QL7P SENSOR_CONFIGURATION_OPTIONS="--no-sleep" TARGET_BOARD=BOARD_LESSON_TRACKER CLOCK_MASTER=yes SENSOR_ID=61`
 
 # Debugging
-- `make install_nordic_full debug -j9 DEBUG=1 VERBOSE=1`
+- `make install_nordic_full debug -j9 DEBUG=1 VERBOSE=1 TARGET_BOARD=BOARD_SHOE_SENSORv2`
 - `JLinkGDBServer -if swd -device nrf52 -speed 4000`
 - `arm-none-eabi-gdb _build/*.elf`
   - `target remote :2331`
