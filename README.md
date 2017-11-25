@@ -11,21 +11,17 @@
 
 # Compile and flash devices
 
-Program a shoe sensor with id 1, turning off serial for power savings
+Program a shoe sensor with id 11, turning off serial for power savings:
 
-`make program SERIAL_PORT=/dev/cu.usbserial-FTZ86FTC SENSOR_CONFIGURATION_OPTIONS="--no-serial" TARGET_BOARD=BOARD_SHOE_SENSOR SENSOR_ID=1`
+`make install_nordic_full TARGET_BOARD=BOARD_SHOE_SENSORv2 && make configure SENSOR_CONFIGURATION_OPTIONS="--no-serial" SERIAL_PORT=/dev/cu.usbmodem1431 SENSOR_ID=11`
 
 Program an area sensor with id 3, turning off serial for power savings:
 
-`make program SERIAL_PORT=/dev/cu.usbserial-AI04QL7P SENSOR_CONFIGURATION_OPTIONS="--no-serial" TARGET_BOARD=BOARD_LESSON_TRACKER SENSOR_ID=3`
+`make install_nordic_full TARGET_BOARD=BOARD_LESSON_TRACKERv2 && make configure SENSOR_CONFIGURATION_OPTIONS="--no-serial" SERIAL_PORT=/dev/cu.SLAB_USBtoUART40 SENSOR_ID=3`
 
-Program a listening device that doesn't sleep, and listens all the time.
+Program mothernode (area type sensor) that listens all the time and broadcasts time at high power.
 
-`make program SERIAL_PORT=/dev/cu.usbserial-DN00CSZ7 SENSOR_CONFIGURATION_OPTIONS="--no-sleep" TARGET_BOARD=BOARD_RFD77201 SENSOR_ID=51`
-
-Program a master clock device that doesn't sleep, listens all the time, and broadcasts its clock signal at full power.
-
-`make program SERIAL_PORT=/dev/cu.usbserial-AI04QL7P SENSOR_CONFIGURATION_OPTIONS="--no-sleep" TARGET_BOARD=BOARD_LESSON_TRACKER CLOCK_MASTER=yes SENSOR_ID=61`
+`make install_nordic_full TARGET_BOARD=BOARD_LESSON_TRACKERv2 CLOCK_MASTER=yes && make configure SENSOR_CONFIGURATION_OPTIONS="--no-sleeping" SERIAL_PORT=/dev/cu.SLAB_USBtoUART40 SENSOR_ID=61`
 
 # Debugging
 - `make install_nordic_full debug -j9 DEBUG=1 VERBOSE=1`
