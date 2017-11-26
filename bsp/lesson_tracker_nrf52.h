@@ -28,8 +28,9 @@ extern "C" {
 
 // Max charge of lipo = 4.2V
 #define BATTERY_MAX_VOLTAGE 4.2
-// Lipo protection circuit low voltage cut-off = 2.8V
-#define BATTERY_MIN_VOLTAGE 2.8
+// Lipo protection circuit low voltage cut-off = 2.8V,
+// but 3V will give less of a % cliff as end of battery nears.
+#define BATTERY_MIN_VOLTAGE 3.0
 
 // Disable BSP
 #define LEDS_NUMBER 0

@@ -32,8 +32,8 @@ extern "C" {
 #define BATTERY_SENSE_EXTERNAL_SCALE 1
 
 // Coin cells seem to start at 2.72, when current is being used
-#define BATTERY_MAX_VOLTAGE 2.72
-// nrf51 can go to 1.7, but imu can only go to 2.4.
+#define BATTERY_MAX_VOLTAGE 2.7
+// nrf52 can go to 1.7, but imu can only go to 2.4.
 #define BATTERY_MIN_VOLTAGE 2.1
 
 // Disable BSP
