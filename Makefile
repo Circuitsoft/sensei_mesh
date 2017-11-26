@@ -246,10 +246,9 @@ remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-ou
 
 C_SOURCE_FILES += src/proximity.c src/battery.c src/shoe_accel.c src/power_manage.c \
 	src/app_evt.c src/mesh_control.c bsp/bsp.c src/jostle_detect_mma8451.c \
-	src/jostle_detect_bmx055.c src/rtc.c
+	src/jostle_detect_bmx055.c src/rtc.c src/app_timer.c
 CXX_SOURCE_FILES += src/config.cpp src/main.cpp src/sensor.cpp src/app_cmd.cpp \
 	src/scheduler.cpp src/heartbeat.cpp
-C_SOURCE_FILES += $(COMPONENTS)/libraries/timer/app_timer.c
 C_SOURCE_FILES += $(COMPONENTS)/libraries/crc16/crc16.c
 
 C_SOURCE_FILES += $(RBC_MESH)/src/serial_handler_uart.c
@@ -290,7 +289,6 @@ C_SOURCE_FILES += $(COMPONENTS)/softdevice/common/softdevice_handler/softdevice_
 C_SOURCE_FILES += $(COMPONENTS)/drivers_nrf/gpiote/nrf_drv_gpiote.c
 C_SOURCE_FILES += $(COMPONENTS)/drivers_nrf/common/nrf_drv_common.c
 C_SOURCE_FILES += $(COMPONENTS)/drivers_nrf/uart/nrf_drv_uart.c
-C_SOURCE_FILES += $(COMPONENTS)/drivers_nrf/clock/nrf_drv_clock.c
 C_SOURCE_FILES += $(COMPONENTS)/drivers_nrf/saadc/nrf_drv_saadc.c
 C_SOURCE_FILES += $(COMPONENTS)/drivers_nrf/hal/nrf_saadc.c
 C_SOURCE_FILES += $(COMPONENTS)/libraries/util/app_util_platform.c
