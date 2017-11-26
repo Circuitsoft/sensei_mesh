@@ -57,7 +57,7 @@ static nrf_clock_lf_cfg_t clock_lf_cfg = NRF_CLOCK_LFCLKSRC;
 /** @brief General error handler. */
 static inline void error_loop(void) {
   log("In error_loop");
-  TOGGLE_LED(LED_RED);
+  nrf_gpio_pin_clear(STATUS_LED_PIN); // Turn on status led
   __disable_irq();
   while (true) {
     power_manage();
@@ -166,13 +166,6 @@ int main(void) {
   log("Mesh control init");
   mesh_control_init();
 
-#if LEDS_NUMBER > 0
-  log("Some LEDs");
-  nrf_gpio_cfg_output(LED_START + LED_GREEN);
-  nrf_gpio_cfg_output(LED_START + LED_RED);
-  nrf_gpio_cfg_output(LED_START + LED_BLUE);
-#endif
-
   log("Enabling sd handler");
 /* Enable Softdevice (including sd_ble before framework */
 
@@ -250,6 +243,7 @@ int main(void) {
   /* Enable our handle */
   if (Config.GetSensorID() > 0) {
     logf("Sensor ID = %d", Config.GetSensorID());
+    nrf_gpio_pin_clear(STATUS_LED_PIN); // Turn on led if ID configured
     sensor_init();
   } else {
     log("WARNING: Sensor ID not set");

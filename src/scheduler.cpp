@@ -58,7 +58,6 @@ static void periodic_timer_cb(void * p_context)
     m_scheduler_state = SCHEDULER_STATE_BEFORE_HB;
     rbc_mesh_start();
     nrf_gpio_pin_clear(STATUS_LED_PIN); // Turn on status led
-
     delay_to_heartbeat();
   }
 
