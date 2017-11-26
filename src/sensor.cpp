@@ -20,10 +20,10 @@ void sensor_init() {
   shoe_accel_init();
 #endif
 
-#ifdef JOSTLE_DETECT
+  // This is always called, even if JOSTLE_DETECT is not defined,
+  // as it will shut off unused modules to save power.
   log("jostle detect init");
   jostle_detect_init();
-#endif
 
   uint32_t error_code;
   error_code = rbc_mesh_value_enable(SENSOR_HANDLE(Config.GetSensorID()));
