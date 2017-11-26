@@ -15,13 +15,13 @@ Program a shoe sensor with id 11, turning off serial for power savings:
 
 `make install_nordic_full TARGET_BOARD=BOARD_SHOE_SENSORv2 && make configure SENSOR_CONFIGURATION_OPTIONS="--no-serial" SERIAL_PORT=/dev/cu.usbmodem1431 SENSOR_ID=11`
 
-Program an area sensor with id 3, turning off serial for power savings:
+Program an area/lesson sensor with id 3, turning off serial for power savings:
 
 `make install_nordic_full TARGET_BOARD=BOARD_LESSON_TRACKERv2 && make configure SENSOR_CONFIGURATION_OPTIONS="--no-serial" SERIAL_PORT=/dev/cu.SLAB_USBtoUART40 SENSOR_ID=3`
 
 Program mothernode (area type sensor) that listens all the time and broadcasts time at high power.
 
-`make install_nordic_full TARGET_BOARD=BOARD_LESSON_TRACKERv2 CLOCK_MASTER=yes && make configure SENSOR_CONFIGURATION_OPTIONS="--no-sleeping" SERIAL_PORT=/dev/cu.SLAB_USBtoUART40 SENSOR_ID=61`
+`make install_nordic_full TARGET_BOARD=BOARD_LESSON_TRACKERv2 CLOCK_MASTER=yes && make configure SENSOR_CONFIGURATION_OPTIONS="--no-sleeping" SERIAL_PORT=/dev/cu.SLAB_USBtoUART SENSOR_ID=61`
 
 # Debugging
 - `make install_nordic_full debug -j9 DEBUG=1 VERBOSE=1`
