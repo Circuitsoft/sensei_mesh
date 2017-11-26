@@ -17,6 +17,7 @@
 #include "mesh_control.h"
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
+#include "nrf_drv_saadc.h"
 #include "power_manage.h"
 #include "rtc.h"
 #include "scheduler.h"
@@ -226,6 +227,8 @@ int main(void) {
   // Configure status LED
   nrf_gpio_cfg_output(STATUS_LED_PIN);
   nrf_gpio_pin_set(STATUS_LED_PIN); // Low = On, High = Off
+
+  nrf_drv_saadc_calibrate_offset();
 
   // Extra gpio pin that can be used for testing
   // nrf_gpio_cfg_output(EXTRA_GPIO_PIN);

@@ -19,14 +19,18 @@ extern "C" {
 #define BATTERY_SENSE_PIN NRF_SAADC_INPUT_AIN2
 #define BATTERY_SENSE_ADC_GAIN NRF_SAADC_GAIN1_6
 #define BATTERY_SENSE_ADC_RESOLUTION NRF_SAADC_RESOLUTION_12BIT
+// GAIN = 1/6
+// REFERENCE = 0.6V
 // ADC scale =  GAIN/REFERENCE * 2^(RESOLUTION)
 #define BATTERY_SENSE_ADC_SCALE ((1/6.0)/0.6*(1<<12))
 // Voltage divider.  R1 = 3.9 MOhm, R2 = 10 MOhm
 #define BATTERY_SENSE_EXTERNAL_SCALE (10.0 / (3.9 + 10.0))
-//#define BATTERY_SENSE_EXTERNAL_SCALE (1.0 / (1.0 + 1.0))
 
+// Max charge of lipo = 4.2V
 #define BATTERY_MAX_VOLTAGE 4.2
-#define BATTERY_MIN_VOLTAGE 2.7
+// Lipo protection circuit low voltage cut-off = 2.8V,
+// but 3V will give less of a % cliff as end of battery nears.
+#define BATTERY_MIN_VOLTAGE 3.0
 
 // Disable BSP
 #define LEDS_NUMBER 0

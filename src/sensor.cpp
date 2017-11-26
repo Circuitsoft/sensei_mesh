@@ -43,6 +43,12 @@ void gather_sensor_data() {
   log("checking voltage");
   voltage = get_battery_voltage();
   // Convert to percent
+  if (voltage < BATTERY_MIN_VOLTAGE) {
+    voltage = BATTERY_MIN_VOLTAGE;
+  }
+  if (voltage > BATTERY_MAX_VOLTAGE) {
+    voltage = BATTERY_MAX_VOLTAGE;
+  }
   m_value.battery = (voltage - BATTERY_MIN_VOLTAGE) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100;
   logf("battery percent = %d", m_value.battery);
 

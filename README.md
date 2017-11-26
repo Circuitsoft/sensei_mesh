@@ -24,7 +24,7 @@ Program mothernode (area type sensor) that listens all the time and broadcasts t
 `make install_nordic_full TARGET_BOARD=BOARD_LESSON_TRACKERv2 CLOCK_MASTER=yes && make configure SENSOR_CONFIGURATION_OPTIONS="--no-sleeping" SERIAL_PORT=/dev/cu.SLAB_USBtoUART SENSOR_ID=61`
 
 # Debugging
-- `make install_nordic_full debug -j9 DEBUG=1 VERBOSE=1`
+- `make install_nordic_full debug -j9 DEBUG=1 VERBOSE=1 TARGET_BOARD=BOARD_SHOE_SENSORv2`
 - `JLinkGDBServer -if swd -device nrf52 -speed 4000`
 - `arm-none-eabi-gdb _build/*.elf`
   - `target remote :2331`
