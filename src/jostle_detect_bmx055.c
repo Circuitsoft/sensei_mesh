@@ -185,6 +185,14 @@ static uint8_t read_acc_register(uint8_t reg) {
   return i2c_read_reg(BMX055_ADDR_ACCEL, reg);
 }
 
+static bool write_gyr_register(uint8_t reg, uint8_t value) {
+  return i2c_write_reg(BMX055_ADDR_GYRO, reg, value);
+}
+
+static bool write_mag_register(uint8_t reg, uint8_t value) {
+  return i2c_write_reg(BMX055_ADDR_MAG, reg, value);
+}
+
 volatile uint32_t last_jostle;
 
 // Motion interrupt pin handler
@@ -201,22 +209,40 @@ void jostle_detect_init() {
   log("jostle_detect_init");
   i2c_init();
 
-  ret_code_t err_code;
-
   // Configure bmx055
   // reset
   log("reset BMX055");
   write_acc_register(BMX055_ACC_BGW_SOFTRESET, 0xB6);
+
+  // These block at times.
+  // write_gyr_register(BMX055_GYRO_BGW_SOFTRESET, 0xB6);
+  // write_mag_register(BMX055_MAG_PWR_CNTL1, 0x83);
+
   nrf_delay_us(2048); // Wait for initialization
 
-  uint8_t data = read_acc_register(BMX055_ACC_WHOAMI);
-
-  if (data) {
-    logf("BMX055_ACC addr = 0x%x", data);
-  } else {
-    log("Could not read accelerometer");
+  if (!read_acc_register(BMX055_ACC_WHOAMI) == 0xFA) {
+    log("Accelerometer WHOAMI failed.");
+    return;
   }
 
+  if (!read_acc_register(BMX055_GYRO_WHOAMI) == 0x0F) {
+    log("Gyroscope WHOAMI failed.");
+    return;
+  }
+
+  if (!read_acc_register(BMX055_MAG_WHOAMI) == 0x32) {
+    log("Magnetometer WHOAMI failed.");
+    return;
+  }
+
+  log("IMU online");
+
+  log("Putting gyro to sleep");
+  write_gyr_register(BMX055_GYRO_LPM1, 1 << 5); // Put Gyro to sleep
+  log("Putting magnetometer to sleep");
+  write_mag_register(BMX055_MAG_PWR_CNTL1, 0); // Put magnetometer to sleep
+
+#ifdef JOSTLE_DETECT
   // enable 4G range (datasheet sec. 5.2.1)
   write_acc_register(BMX055_ACC_PMU_RANGE, 0x05);
   // enable 7.81Hz BW (datasheet sec. 5.2.1)
@@ -229,16 +255,22 @@ void jostle_detect_init() {
 #ifdef JOSTLE_WAKEUP
   // Setup motion detection
   write_acc_register(BMX055_ACC_INT_5, 3); // 2 consecutive samples for slope detection, no slow-motion detection
-  write_acc_register(BMX055_ACC_INT_6, JOSTLE_SLOPE_THRESH); // Defined per-device
+  write_acc_register(BMX055_ACC_INT_6, JOSTLE_WAKEUP_SLOPE_THRESH); // Defined per-device
   write_acc_register(BMX055_ACC_INT_EN_0, 7); // Enable slope on X, Y, and Z
 #endif // JOSTLE_WAKEUP
+
+#else  // JOSTLE_DETECT
+log("Putting accelerometer to sleep");
+  write_acc_register(BMX055_ACC_PMU_LPW, 1 << 7); // Put accelerometer to sleep
+#endif // JOSTLE_DETECT
 
   // Save power after configuring accelerometer
   i2c_shutdown();
 
   // Set up Interrupt Line
+#ifdef JOSTLE_DETECT
   log("Configure BMX055 Interrupt");
-  err_code = nrf_drv_gpiote_init();
+  ret_code_t err_code = nrf_drv_gpiote_init();
   APP_ERROR_CHECK(err_code);
 
   nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_HITOLO(false);
@@ -248,6 +280,7 @@ void jostle_detect_init() {
   APP_ERROR_CHECK(err_code);
 
   nrf_drv_gpiote_in_event_enable(IMU_INT1_GPIO, true);
+#endif
 }
 
 static inline float fabs(float val)
