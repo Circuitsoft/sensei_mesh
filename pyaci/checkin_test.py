@@ -52,8 +52,8 @@ class CheckinTimer(object):
     def get_sensor_updates(self):
         updates = []
         while True:
-            try:
-                evt = self.aci.events_queue.get_nowait()
+            events = self.aci.get_events()
+            for evt in events:
                 self.last_event = time.time()
                 if isinstance(evt, AciEvent.AciEventUpdate):
                     self.update_sensor(evt.ValueHandle & 0xff)
@@ -61,8 +61,6 @@ class CheckinTimer(object):
                     updates.append(evt.sensor_values())
                 elif isinstance(evt, AciEvent.AciEventAppEvt) and evt.is_heartbeat():
                     self.handle_heartbeat(evt.heartbeat_msg())
-            except Empty:
-                break
         return updates
 
     def run_app_command(self, command):
@@ -90,6 +88,7 @@ class CheckinTimer(object):
     def handle_exceptions_with_sleep_retry(self, callable, sleep_duration, num_retries, description):
         while (num_retries > 0):
             try:
+                print("Trying upload")
                 return callable()
             except Exception as e:
                 print("Exception while %s: %r" %(description, e))
