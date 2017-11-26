@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 -u
 
 from argparse import ArgumentParser
 from aci import AciCommand
@@ -7,6 +7,7 @@ from aci import AciEvent
 from aci.AciEvent import SensorValues
 from queue import Empty
 import sys
+import logging
 import time
 import sensei_cmd
 from sensei import *
@@ -14,6 +15,15 @@ import datetime
 import yaml
 from os.path import expanduser
 import os.path
+
+root = logging.getLogger()
+root.setLevel(logging.INFO)
+
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+root.addHandler(ch)
 
 class Uploader(object):
     # Synchronize once every minute
@@ -29,37 +39,42 @@ class Uploader(object):
         self.restart_serial()
         self.api = Api(api_url, sensei_config["server"]["username"], sensei_config["server"]["password"])
         self.classroom_id = sensei_config["classroom_id"]
+        self.updates = []
 
     def handle_heartbeat(self, hb):
-        print(str.format("handling heartbeat: %s" %(hb)))
         if hb.epoch_seconds != hb.received_at or abs(time.time() - hb.epoch_seconds) > 5:
           print(str.format("Sensor %d clock offset detected; issuing sync_time." %(hb.sensor_id)))
           self.sync_time()
 
-    def get_sensor_updates(self):
-        updates = []
-        while True:
-            try:
-                evt = self.aci.events_queue.get_nowait()
-                self.last_event = time.time()
-                print(str.format("evt = %s" %(evt)))
-                if isinstance(evt, AciEvent.AciEventNew) and evt.is_sensor_update():
-                    updates.append(evt.sensor_values())
-                elif isinstance(evt, AciEvent.AciEventAppEvt) and evt.is_heartbeat():
-                    self.handle_heartbeat(evt.heartbeat_msg())
-            except Empty:
-                break
-        return updates
+    def event_is_sensor_update(self, evt):
+        return (isinstance(evt, AciEvent.AciEventNew) or
+               isinstance(evt, AciEvent.AciEventUpdate)) and evt.is_sensor_update()
+
+    def handle_events(self, events):
+        for evt in events:
+            print(str(evt))
+            if self.event_is_sensor_update(evt):
+                update = evt.sensor_values()
+                if update.is_valid:
+                    self.updates.append(update)
+            elif isinstance(evt, AciEvent.AciEventAppEvt) and evt.is_heartbeat():
+                self.handle_heartbeat(evt.heartbeat_msg())
+
+    def get_events(self):
+        events = self.aci.get_events(timeout=5)
+        if len(events) > 0:
+            self.last_event = time.time()
+            self.handle_events(events)
 
     def run_app_command(self, command):
         data = command.serialize()
-        retval = self.aci.write_aci_cmd(AciCommand.AciAppCommand(data=data,length=len(data)+1))
-        print("Events received: %s" % retval)
-        return retval
+        events = self.aci.write_aci_cmd(AciCommand.AciAppCommand(data=data,length=len(data)+1))
+        self.handle_events(events)
+        return events
 
     def sync_time(self):
         self.last_time_sync = time.time()
-        result = self.run_app_command(sensei_cmd.SetTime())
+        self.run_app_command(sensei_cmd.SetTime())
 
     def get_config(self):
         return self.run_app_command(sensei_cmd.GetConfig())
@@ -112,14 +127,14 @@ class Uploader(object):
         events = [AccelerometerEvent(self.classroom_id, sensor_id, ob_time, event_type)]
         self.handle_exceptions_with_sleep_retry(lambda: self.api.upload_accelerometer_events(events), 1, 3, "uploading accelerometer obs")
 
-    def handle_updates_from_serial(self, updates):
+    def handle_updates_from_serial(self):
         if not self.options.dry_run:
-            obs = [self.radio_obs_from_update(update) for update in updates]
+            obs = [self.radio_obs_from_update(update) for update in self.updates]
             flattened_obs = [ob for sublist in obs for ob in sublist]
             if len(flattened_obs) > 0:
                 self.upload_radio_observations(flattened_obs)
             accelerometer_obs = []
-            for update in updates:
+            for update in self.updates:
                 ob = self.accelerometer_measurement_from_update(update)
                 if ob:
                     accelerometer_obs.append(ob)
@@ -132,17 +147,15 @@ class Uploader(object):
     def run(self):
         # Wait for serial connection to be ready
         time.sleep(3)
-        print("Getting config")
-        self.get_config()
 
         # Sync time
         print("Syncing time")
         self.sync_time()
 
         while True:
-            updates = [u for u in self.get_sensor_updates() if u.is_valid]
-            if len(updates) > 0:
-                self.handle_updates_from_serial(updates)
+            self.get_events()
+            if len(self.updates) > 0:
+                self.handle_updates_from_serial()
             else:
                 time.sleep(0.5)
 

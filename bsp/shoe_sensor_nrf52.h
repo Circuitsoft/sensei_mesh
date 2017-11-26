@@ -5,10 +5,10 @@
 extern "C" {
 #endif
 
-#define JOSTLE_DETECT
+//#define JOSTLE_DETECT
 #define JOSTLE_AVERAGE_THRESH 0.03f
 
-#define JOSTLE_WAKEUP
+//#define JOSTLE_WAKEUP
 // Slope in acceleration in
 // 7.81 milli-G per sample (15.62Hz)
 #define JOSTLE_WAKEUP_SLOPE_THRESH 8
@@ -41,6 +41,8 @@ extern "C" {
 #define BUTTONS_NUMBER 0
 
 #define STATUS_LED_PIN 4
+
+#define EXTRA_GPIO_PIN 9
 
 #define RX_PIN_NUMBER 3
 #define TX_PIN_NUMBER 2

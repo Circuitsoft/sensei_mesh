@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define JOSTLE_DETECT
+//#define JOSTLE_DETECT
 #define JOSTLE_AVERAGE_THRESH 0.03f
 
 #define BMX055
@@ -37,6 +37,8 @@ extern "C" {
 #define BUTTONS_NUMBER 0
 
 #define STATUS_LED_PIN 8
+
+#define EXTRA_GPIO_PIN 9
 
 #define RX_PIN_NUMBER 3
 #define TX_PIN_NUMBER 2
