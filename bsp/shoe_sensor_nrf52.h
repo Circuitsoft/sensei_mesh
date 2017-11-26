@@ -38,6 +38,8 @@ extern "C" {
 
 #define STATUS_LED_PIN 4
 
+#define EXTRA_GPIO_PIN 9
+
 #define RX_PIN_NUMBER 3
 #define TX_PIN_NUMBER 2
 #define HWFC false
