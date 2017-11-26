@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define JOSTLE_DETECT
+//#define JOSTLE_DETECT
 #define JOSTLE_AVERAGE_THRESH 0.03f
 
 #define BMX055
