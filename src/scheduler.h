@@ -23,7 +23,7 @@ typedef enum {
 } scheduler_state_t;
 
 #define MAX_EXPECTED_CLOCK_SKEW_MS (10)
-#define HEARTBEAT_WINDOW_MS (40)
+#define HEARTBEAT_WINDOW_MS (80)
 #define TOTAL_RADIO_WINDOW_MS (900)
 
 void scheduler_init(bool sleep_enabled);
