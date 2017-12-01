@@ -42,7 +42,7 @@ class Uploader(object):
         self.updates = []
 
     def handle_heartbeat(self, hb):
-        if hb.epoch_seconds != hb.received_at or abs(time.time() - hb.epoch_seconds) > 5:
+        if hb.epoch_seconds != hb.received_at:
           print(str.format("Sensor %d clock offset detected; issuing sync_time." %(hb.sensor_id)))
           self.sync_time()
 
@@ -143,6 +143,7 @@ class Uploader(object):
                     print("Jostle from %d" %(update.sensor_id))
             if len(accelerometer_obs) > 0:
                 self.upload_accelerometer_observations(accelerometer_obs)
+        self.updates = []
 
     def run(self):
         # Wait for serial connection to be ready
