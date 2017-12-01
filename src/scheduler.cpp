@@ -47,6 +47,11 @@ static void report_debug_register() {
   rbc_mesh_value_set(DEBUG_REGISTER_HANDLE, debug_register, DEBUG_REGISTER_SIZE);
 }
 
+static void do_heartbeat() {
+  //led_config(LED_GREEN, 0);
+  send_heartbeat_packet(Config.GetSensorID(), m_current_time, get_clock_ms(), m_clock_version);
+}
+
 static void periodic_timer_cb(void * p_context)
 {
   log("periodic_timer_cb");
@@ -59,6 +64,10 @@ static void periodic_timer_cb(void * p_context)
     rbc_mesh_start();
     nrf_gpio_pin_clear(STATUS_LED_PIN); // Turn on status led
     delay_to_heartbeat();
+  } else {
+#ifdef CLOCK_MASTER
+    do_heartbeat();
+#endif
   }
 
 #ifdef JOSTLE_DETECT
@@ -77,11 +86,6 @@ static void delay_to_heartbeat() {
   if (app_timer_start(m_offset_timer_ID, delay_ticks, NULL) != NRF_SUCCESS) {
     TOGGLE_LED(LED_RED);
   }
-}
-
-static void do_heartbeat() {
-  //led_config(LED_GREEN, 0);
-  send_heartbeat_packet(Config.GetSensorID(), m_current_time, get_clock_ms(), m_clock_version);
 }
 
 static void delay_to_reporting() {

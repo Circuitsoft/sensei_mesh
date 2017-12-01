@@ -17,7 +17,7 @@ Program a shoe sensor with id 11, turning off serial for power savings:
 
 Program an area/lesson sensor with id 3, turning off serial for power savings:
 
-`make install_nordic_full TARGET_BOARD=BOARD_LESSON_TRACKERv2 && make configure SENSOR_CONFIGURATION_OPTIONS="--no-serial" SERIAL_PORT=/dev/cu.SLAB_USBtoUART40 SENSOR_ID=3`
+`make install_nordic_full TARGET_BOARD=BOARD_LESSON_TRACKERv2 && make configure SENSOR_CONFIGURATION_OPTIONS="--no-serial" SERIAL_PORT=/dev/cu.SLAB_USBtoUART SENSOR_ID=3`
 
 Program mothernode (area type sensor) that listens all the time and broadcasts time at high power.
 
