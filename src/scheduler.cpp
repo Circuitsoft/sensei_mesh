@@ -154,7 +154,7 @@ static void offset_timer_cb(void * p_context) {
 }
 
 static void start_periodic_timer() {
-  uint32_t result = app_timer_start(m_periodic_timer_ID, APP_TIMER_TICKS(1000, APP_TIMER_PRESCALER), NULL);
+  uint32_t result = app_timer_start(m_periodic_timer_ID, APP_TIMER_TICKS(10, APP_TIMER_PRESCALER), NULL);
   if (result != NRF_SUCCESS) {
     logf("error starting periodic timer: %s", ERR_TO_STR(result));
   }
