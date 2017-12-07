@@ -220,17 +220,17 @@ void jostle_detect_init() {
 
   nrf_delay_us(2048); // Wait for initialization
 
-  if (!read_acc_register(BMX055_ACC_WHOAMI) == 0xFA) {
+  if (read_acc_register(BMX055_ACC_WHOAMI) != 0xFA) {
     log("Accelerometer WHOAMI failed.");
     return;
   }
 
-  if (!read_acc_register(BMX055_GYRO_WHOAMI) == 0x0F) {
+  if (read_acc_register(BMX055_GYRO_WHOAMI) != 0x0F) {
     log("Gyroscope WHOAMI failed.");
     return;
   }
 
-  if (!read_acc_register(BMX055_MAG_WHOAMI) == 0x32) {
+  if (read_acc_register(BMX055_MAG_WHOAMI) != 0x32) {
     log("Magnetometer WHOAMI failed.");
     return;
   }
