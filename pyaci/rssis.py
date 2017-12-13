@@ -1,12 +1,12 @@
 #!/usr/bin/env python3 -u
 
-AREA_SENSOR_UART='/dev/ttyUSB0'
-POZYX_UART='/dev/ttyUSB1'
+AREA_SENSOR_UART='/dev/cu.SLAB_USBtoUART'
+POZYX_UART='/dev/cu.usbmodem144231'
 
 from aci_serial import AciUart
 from datetime import datetime
 import sys
-import thread
+import threading
 
 aci = AciUart.AciUart(port=AREA_SENSOR_UART, baudrate=115200)
 outdat = open("rssi.csv", "a")
@@ -35,6 +35,8 @@ def read_dists():
             line.strip()
             line = '%5d' % int(line)
             write_sample(dist=line)
+    except:
+        pass
 
 dist_thr = threading.Thread(target=read_dists)
 dist_thr.start()
