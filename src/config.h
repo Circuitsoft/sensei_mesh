@@ -12,7 +12,7 @@ const uint8_t DEFAULT_MESH_CHANNEL = 38;
 typedef struct {
   uint8_t sensor_id{0};
   uint8_t serial_enabled{true};
-  uint8_t mesh_channel{DEFAULT_MESH_CHANNEL};
+  uint8_t mesh_channel{205};
   uint8_t sleep_enabled{true};
 } __attribute__((packed)) app_config_t;
 
