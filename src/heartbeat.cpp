@@ -21,6 +21,7 @@ void heartbeat_init(uint8_t channel) {
 
 void send_heartbeat_packet(uint8_t sensor_id, uint32_t epoch_seconds,
                            uint16_t epoch_ms, uint16_t clock_version) {
+  nrf_gpio_pin_set(20);
   // Send out time sync packet
   log("send_heartbeat_packet()");
   mesh_packet_t *p_packet;
@@ -62,6 +63,7 @@ void send_heartbeat_packet(uint8_t sensor_id, uint32_t epoch_seconds,
 
     mesh_packet_ref_count_dec(p_packet);
   }
+  nrf_gpio_pin_clear(20);
 }
 
 void received_heartbeat(heartbeat_ad_t *p_heartbeat_ad, uint8_t rssi) {

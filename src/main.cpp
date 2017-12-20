@@ -228,6 +228,9 @@ int main(void) {
   nrf_gpio_cfg_output(STATUS_LED_PIN);
   nrf_gpio_pin_set(STATUS_LED_PIN); // Low = On, High = Off
 
+  // Configure TX timing monitor
+  nrf_gpio_cfg_output(20);
+
   nrf_drv_saadc_calibrate_offset();
 
   // Extra gpio pin that can be used for testing
