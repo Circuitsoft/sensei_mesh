@@ -189,7 +189,7 @@ void scheduler_init(bool sleep_enabled) {
   m_sleep_enabled = sleep_enabled;
   rand_prng_seed(&m_rand);
   m_scheduler_state = SCHEDULER_STATE_STOPPED;
-  APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
+  APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, NULL);
 
   if (result != NRF_SUCCESS) {
     logf("error starting timer: %s", ERR_TO_STR(result));
