@@ -185,12 +185,20 @@ static uint8_t read_acc_register(uint8_t reg) {
   return i2c_read_reg(BMX055_ADDR_ACCEL, reg);
 }
 
+static uint8_t read_gyro_register(uint8_t reg) {
+  return i2c_read_reg(BMX055_ADDR_GYRO, reg);
+}
+
 static bool write_gyr_register(uint8_t reg, uint8_t value) {
   return i2c_write_reg(BMX055_ADDR_GYRO, reg, value);
 }
 
 static bool write_mag_register(uint8_t reg, uint8_t value) {
   return i2c_write_reg(BMX055_ADDR_MAG, reg, value);
+}
+
+static uint8_t read_mag_register(uint8_t reg) {
+  return i2c_read_reg(BMX055_ADDR_MAG, reg);
 }
 
 volatile uint32_t last_jostle;
@@ -215,8 +223,8 @@ void jostle_detect_init() {
   write_acc_register(BMX055_ACC_BGW_SOFTRESET, 0xB6);
 
   // These block at times.
-  // write_gyr_register(BMX055_GYRO_BGW_SOFTRESET, 0xB6);
-  // write_mag_register(BMX055_MAG_PWR_CNTL1, 0x83);
+  //write_gyro_register(BMX055_GYRO_BGW_SOFTRESET, 0xB6);
+  write_mag_register(BMX055_MAG_PWR_CNTL1, 0x83);
 
   nrf_delay_us(2048); // Wait for initialization
 
@@ -225,12 +233,12 @@ void jostle_detect_init() {
     return;
   }
 
-  if (read_acc_register(BMX055_GYRO_WHOAMI) != 0x0F) {
+  if (read_gyro_register(BMX055_GYRO_WHOAMI) != 0x0F) {
     log("Gyroscope WHOAMI failed.");
     return;
   }
 
-  if (read_acc_register(BMX055_MAG_WHOAMI) != 0x32) {
+  if (read_mag_register(BMX055_MAG_WHOAMI) != 0x32) {
     log("Magnetometer WHOAMI failed.");
     return;
   }
