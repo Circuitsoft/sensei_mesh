@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Make sure any spaces read wind up in $x
+IFS=''
+
+JLinkRTTClient "$@" | while read x
+do
+	echo -n $(date +"%H:%M:%S.%3N")
+	printf ': %s\n' "$x"
+done
