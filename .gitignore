@@ -4,3 +4,4 @@ _build*
 *.log~
 .ipynb_checkpoints
 .gdb_history
+data

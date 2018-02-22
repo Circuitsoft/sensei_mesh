@@ -11,10 +11,13 @@ import logging
 import time
 import sensei_cmd
 from sensei import *
-import datetime
+import json
 import yaml
 from os.path import expanduser
 import os.path
+from redis import Redis
+from datetime_modulo import datetime
+from datetime import timedelta
 
 root = logging.getLogger()
 root.setLevel(logging.INFO)
@@ -25,21 +28,26 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 ch.setFormatter(formatter)
 root.addHandler(ch)
 
-class Uploader(object):
+class Collector(object):
     # Synchronize once every minute
-    TIME_SYNC_INTERVAL=60
-    NO_DATA_TIMEOUT=35
+    TIME_SYNC_INTERVAL = 60
+    NO_DATA_TIMEOUT = 35
+
+    # Observed data expected periodicity
+    OBS_TIME_PERIOD = timedelta(seconds=10)
+    OBS_COLLECTION_MAX_LAG = timedelta(seconds=4)
 
     def __init__(self, sensei_config, options):
         self.sensei_config = sensei_config
         self.options = options
-
         self.aci = None
-        api_url = sensei_config["server"]["url"] + 'api/v1/'
         self.restart_serial()
-        self.api = Api(api_url, sensei_config["server"]["username"], sensei_config["server"]["password"])
         self.classroom_id = sensei_config["classroom_id"]
-        self.updates = []
+        self.sensor_updates = []
+        self.radio_obs = []
+        self.accelerometer_obs = []
+        self.redis = Redis()
+        self.last_published_period = None
 
     def handle_heartbeat(self, hb):
         if hb.epoch_seconds != hb.received_at:
@@ -56,12 +64,12 @@ class Uploader(object):
             if self.event_is_sensor_update(evt):
                 update = evt.sensor_values()
                 if update.is_valid:
-                    self.updates.append(update)
+                    self.sensor_updates.append(update)
             elif isinstance(evt, AciEvent.AciEventAppEvt) and evt.is_heartbeat():
                 self.handle_heartbeat(evt.heartbeat_msg())
 
-    def get_events(self):
-        events = self.aci.get_events(timeout=5)
+    def get_events(self, timeout=5):
+        events = self.aci.get_events(timeout)
         if len(events) > 0:
             self.last_event = time.time()
             self.handle_events(events)
@@ -73,25 +81,23 @@ class Uploader(object):
         return events
 
     def sync_time(self):
+        print("Syncing time")
         self.last_time_sync = time.time()
         self.run_app_command(sensei_cmd.SetTime())
-
-    def get_config(self):
-        return self.run_app_command(sensei_cmd.GetConfig())
 
     def radio_obs_from_update(self, update):
         if not update.is_valid:
             return []
         obs = []
         for remote_id, rssi in zip(update.proximity_ids, update.proximity_rssi):
-            ob_time = datetime.datetime.utcfromtimestamp(update.valid_time)
+            ob_time = datetime.utcfromtimestamp(update.valid_time)
             if remote_id > 0 and rssi > 0:
                 obs.append(RadioObservation(self.classroom_id, update.sensor_id, remote_id, ob_time, -rssi))
         return obs
 
     def accelerometer_measurement_from_update(self, update):
         if update.is_valid and (update.accel_x or update.accel_y or update.accel_z):
-            ob_time = datetime.datetime.utcfromtimestamp(update.valid_time)
+            ob_time = datetime.utcfromtimestamp(update.valid_time)
             return AccelerometerObservation(self.classroom_id, update.sensor_id,
                 ob_time, update.accel_x, update.accel_y, update.accel_z)
 
@@ -116,54 +122,75 @@ class Uploader(object):
                 time.sleep(sleep_duration)
 
 
-    def upload_radio_observations(self, obs):
-        self.handle_exceptions_with_sleep_retry(lambda: self.api.upload_radio_observations(obs), 1, 3, "uploading radio obs")
+    def publish_radio_observations(self, current_obs_period):
+        obs_to_publish = [ob for ob in self.radio_obs if ob.observed_at == current_obs_period]
+        if len(obs_to_publish) != len(self.radio_obs):
+            print("Warning, received out of sync observations for %s: " % current_obs_period)
+            for ob in self.radio_obs:
+                if ob.observed_at != current_obs_period:
+                    print(ob.json_rep())
+        if len(obs_to_publish) > 0 and not self.options.dry_run:
+            json_obs = [ob.json_rep() for ob in obs_to_publish]
+            self.redis.lpush('radio_obs', json.dumps(json_obs))
+        self.radio_obs = []
 
-    def upload_accelerometer_observations(self, obs):
-        self.handle_exceptions_with_sleep_retry(lambda: self.api.upload_accelerometer_observations(obs), 1, 3, "uploading accelerometer obs")
+    def publish_accelerometer_observations(self, current_obs_period):
+        obs_to_publish = [ob for ob in self.accelerometer_obs if ob.observed_at == current_obs_period]
+        if len(obs_to_publish) != len(self.accelerometer_obs):
+            print("Warning, received out of sync observations for %s: " % current_obs_period)
+            for ob in self.accelerometer_obs:
+                if ob.observed_at != current_obs_period:
+                    print(ob.json_rep())
+        if len(obs_to_publish) > 0 and not self.options.dry_run:
+            json_obs = [ob.json_rep() for ob in obs_to_publish]
+            self.redis.lpush('accelerometer_obs', json.dumps(json_obs))
+        self.accelerometer_obs = []
 
-    def upload_accelerometer_event(self, event_type, sensor_id, valid_time):
-        ob_time = datetime.datetime.utcfromtimestamp(valid_time)
-        events = [AccelerometerEvent(self.classroom_id, sensor_id, ob_time, event_type)]
-        self.handle_exceptions_with_sleep_retry(lambda: self.api.upload_accelerometer_events(events), 1, 3, "uploading accelerometer obs")
-
-    def handle_updates_from_serial(self):
+    def publish_accelerometer_event(self, event):
         if not self.options.dry_run:
-            obs = [self.radio_obs_from_update(update) for update in self.updates]
-            flattened_obs = [ob for sublist in obs for ob in sublist]
-            if len(flattened_obs) > 0:
-                self.upload_radio_observations(flattened_obs)
-            accelerometer_obs = []
-            for update in self.updates:
-                ob = self.accelerometer_measurement_from_update(update)
-                if ob:
-                    accelerometer_obs.append(ob)
-                if update.status & SensorValues.STATUS_JOSTLE_FLAG:
-                    self.upload_accelerometer_event('jostle', update.sensor_id, update.valid_time)
-                    print("Jostle from %d" %(update.sensor_id))
-            if len(accelerometer_obs) > 0:
-                self.upload_accelerometer_observations(accelerometer_obs)
-        self.updates = []
+            self.redis.lpush('accelerometer_events', json.dumps(event.json_rep()))
+
+    def process_sensor_updates(self):
+        for update in self.sensor_updates:
+            self.radio_obs.extend(self.radio_obs_from_update(update))
+            ob = self.accelerometer_measurement_from_update(update)
+            if ob:
+                self.accelerometer_obs.append(ob)
+            if update.status & SensorValues.STATUS_JOSTLE_FLAG:
+                print("Jostle from %d" %(update.sensor_id))
+                event_time = datetime.utcfromtimestamp(update.valid_time)
+                evt = AccelerometerEvent(self.classroom_id, update.sensor_id, event_time, 'jostle')
+                self.publish_accelerometer_event(evt)
+        self.sensor_updates = []
 
     def run(self):
         # Wait for serial connection to be ready
         time.sleep(3)
 
         # Sync time
-        print("Syncing time")
         self.sync_time()
 
         while True:
-            self.get_events()
-            if len(self.updates) > 0:
-                self.handle_updates_from_serial()
-            else:
-                time.sleep(0.5)
+            # Get any pending events
+            self.get_events(timeout=0.5)
+            # Some events are sensor updates; process them
+            if len(self.sensor_updates) > 0:
+                self.process_sensor_updates()
 
-            if time.time() - self.last_time_sync > Uploader.TIME_SYNC_INTERVAL:
+            # Batch any obs up into a frame and publish them locally
+            now = datetime.utcnow()
+            current_collection_period = now // self.OBS_TIME_PERIOD
+            if (current_collection_period != self.last_published_period and
+               now - current_collection_period >= self.OBS_COLLECTION_MAX_LAG):
+                print("Batching up obs for %s at %s" % (current_collection_period, now))
+                self.publish_radio_observations(current_collection_period)
+                self.publish_accelerometer_observations(current_collection_period)
+                self.last_published_period = current_collection_period
+
+            if time.time() - self.last_time_sync > self.TIME_SYNC_INTERVAL:
                 self.sync_time()
 
-            if time.time() - self.last_event > Uploader.NO_DATA_TIMEOUT:
+            if time.time() - self.last_event > Collector.NO_DATA_TIMEOUT:
                 self.restart_serial()
 
 if __name__ == '__main__':
@@ -179,8 +206,8 @@ if __name__ == '__main__':
         with open(config_path, 'r') as stream:
             try:
                 sensei_config = yaml.load(stream)
-                uploader = Uploader(sensei_config, options)
-                uploader.run()
+                collector = Collector(sensei_config, options)
+                collector.run()
             except yaml.YAMLError as exc:
                 print(exc)
     else:
