@@ -1,4 +1,4 @@
-#!/usr/bin/env python3 -u
+#!/usr/bin/python3 -u
 
 from argparse import ArgumentParser
 import sys, traceback
@@ -27,7 +27,7 @@ class Uploader(object):
     def upload_radio_observations(self, obs_data):
         if obs_data == None:
             return False
-        ob_json_reps = json.loads(obs_data)
+        ob_json_reps = json.loads(obs_data.decode("utf-8"))
         obs = [RadioObservation.from_json_rep(json_rep) for json_rep in ob_json_reps]
         print("Uploading %d radio observations" % len(obs))
         self.api.upload_radio_observations(obs)

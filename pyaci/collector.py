@@ -1,4 +1,4 @@
-#!/usr/bin/env python3 -u
+#!/usr/bin/python3 -u
 
 from argparse import ArgumentParser
 from aci import AciCommand
