@@ -16,6 +16,17 @@ uint16_t mesh_control_get_wake_interval() { return m_config.wake_interval; }
 
 uint8_t mesh_control_get_hb_tx_power() { return m_config.hb_tx_power; }
 
+int mesh_control_should_sleep(uint32_t timestamp)
+{
+    if (m_config.sleep_time == 0)
+        return false; // Invalid sleep time
+    if (m_config.wake_time <= m_config.sleep_time)
+        return false; // Wake is before sleep, invalid
+
+    return (m_config.wake_time >= timestamp) &&
+          (m_config.sleep_time < timestamp);
+}
+
 void mesh_control_update_config(mesh_control_t *new_config) {
   rbc_mesh_txpower_t allowed_tx_power[] = {
       RBC_MESH_TXPOWER_0dBm, RBC_MESH_TXPOWER_Pos4dBm,

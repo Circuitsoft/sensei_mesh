@@ -16,7 +16,7 @@ import yaml
 from os.path import expanduser
 import os.path
 from redis import Redis
-from datetime_modulo import datetime
+from datetime_modulo import datetime, dt
 from datetime import timedelta
 import struct
 
@@ -40,8 +40,11 @@ class MeshControlManager(object):
         self.interval = 10
         self.txpwr = -4
         self.enable_ble = False
+        self.sleep_time = 0
+        self.wake_time = 0
 
-    def set_mesh_control(self, interval=None, txpwr=None, enable_ble=None):
+    def set_mesh_control(self, interval=None, txpwr=None, enable_ble=None,
+                               sleep_time=None, wake_time=None):
         if interval is not None:
             self.interval = interval
             self.target_mca_version = 0
@@ -52,11 +55,37 @@ class MeshControlManager(object):
             self.enable_ble = enable_ble
             self.target_mca_version = 0
 
+        new_sleep_time = self.sleep_time
+        if isinstance(sleep_time, dt.datetime):
+            sleep_time -= datetime(1970,1,1)
+            sleep_time = sleep_time.total_seconds() + time.timezone
+        if sleep_time is not None:
+            sleep_time = int(sleep_time)
+            new_sleep_time = sleep_time
+
+        new_wake_time = self.wake_time
+        if isinstance(wake_time, dt.datetime):
+            wake_time -= datetime(1970,1,1)
+            wake_time = wake_time.total_seconds() + time.timezone
+        if wake_time is not None:
+            wake_time = int(wake_time)
+            new_wake_time = wake_time
+
+        if (new_sleep_time > 0 and
+            new_wake_time > 0 and
+            new_wake_time > new_sleep_time and
+            (self.sleep_time != new_sleep_time or
+                self.wake_time != new_wake_time)):
+            self.sleep_time = new_sleep_time
+            self.wake_time = new_wake_time
+            self.target_mca_version = 0
+
         if self.target_mca_version == 0:
             self.send_mesh_control()
 
     def send_mesh_control(self):
-        d = struct.pack("<HbB", self.interval, self.txpwr, self.enable_ble)
+        d = struct.pack("<HbBII", self.interval, self.txpwr, self.enable_ble,
+                                  self.sleep_time, self.wake_time)
         self.set_value(0x0201, d)
 
     def handle_aci_eventupdate(self, sensor_id, sensor_mca):
