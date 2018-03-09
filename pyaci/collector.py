@@ -18,6 +18,7 @@ import os.path
 from redis import Redis
 from datetime_modulo import datetime
 from datetime import timedelta
+import struct
 
 root = logging.getLogger()
 root.setLevel(logging.INFO)
@@ -27,6 +28,48 @@ ch.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 ch.setFormatter(formatter)
 root.addHandler(ch)
+
+MOTHERNODE_ID = 61
+
+class MeshControlManager(object):
+    def __init__(self, set_value):
+        self.set_value = set_value
+        self.target_mca_version = 0
+        self.sent_yet = False
+
+        self.interval = 10
+        self.txpwr = -4
+        self.enable_ble = False
+
+    def set_mesh_control(self, interval=None, txpwr=None, enable_ble=None):
+        if interval is not None:
+            self.interval = interval
+            self.target_mca_version = 0
+        if txpwr is not None:
+            self.txpwr = txpwr
+            self.target_mca_version = 0
+        if enable_ble is not None:
+            self.enable_ble = enable_ble
+            self.target_mca_version = 0
+
+        if self.target_mca_version == 0:
+            self.send_mesh_control()
+
+    def send_mesh_control(self):
+        d = struct.pack("<HbB", self.interval, self.txpwr, self.enable_ble)
+        self.set_value(0x0201, d)
+
+    def handle_aci_eventupdate(self, sensor_id, sensor_mca):
+        if self.target_mca_version == 0:
+            if sensor_id == MOTHERNODE_ID:
+                self.target_mca_version = sensor_mca
+        elif not self.sent_yet:
+            if (sensor_id != MOTHERNODE_ID) and (self.target_mca_version > sensor_mca):
+                self.send_mesh_control()
+                self.sent_yet = True
+
+    def handle_new_collection_period(self):
+        self.sent_yet = False
 
 class Collector(object):
     # Synchronize once every minute
@@ -48,6 +91,7 @@ class Collector(object):
         self.accelerometer_obs = []
         self.redis = Redis()
         self.last_published_period = None
+        self.mcm = MeshControlManager(self.set_value)
 
     def handle_heartbeat(self, hb):
         if hb.epoch_seconds != hb.received_at:
@@ -64,7 +108,12 @@ class Collector(object):
             if self.event_is_sensor_update(evt):
                 update = evt.sensor_values()
                 if update.is_valid:
+                    self.mcm.handle_aci_eventupdate(update.sensor_id, update.mesh_control_version)
                     self.sensor_updates.append(update)
+            elif isinstance(evt, AciEvent.AciCmdRsp) and evt.CommandOpCode == AciCommand.AciValueGet.OpCode:
+                update = SensorValues(evt.Data[0], evt.Data[2:])
+                if update.is_valid:
+                    self.mcm.handle_aci_eventupdate(update.sensor_id, update.mesh_control_version)
             elif isinstance(evt, AciEvent.AciEventAppEvt) and evt.is_heartbeat():
                 self.handle_heartbeat(evt.heartbeat_msg())
 
@@ -79,6 +128,11 @@ class Collector(object):
         events = self.aci.write_aci_cmd(AciCommand.AciAppCommand(data=data,length=len(data)+1))
         self.handle_events(events)
         return events
+
+    def set_value(self, handle, data):
+        events = self.aci.write_aci_cmd(AciCommand.AciValueSet(
+            handle=handle, data=data, length=len(data)+3))
+        self.handle_events(events)
 
     def sync_time(self):
         print("Syncing time")
@@ -186,6 +240,9 @@ class Collector(object):
                 self.publish_radio_observations(current_collection_period)
                 self.publish_accelerometer_observations(current_collection_period)
                 self.last_published_period = current_collection_period
+                self.mcm.handle_new_collection_period()
+                self.aci.WriteData(AciCommand.AciValueGet(
+                    handle=256+MOTHERNODE_ID).serialize())
 
             if time.time() - self.last_time_sync > self.TIME_SYNC_INTERVAL:
                 self.sync_time()
