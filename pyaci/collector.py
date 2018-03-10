@@ -100,6 +100,41 @@ class MeshControlManager(object):
     def handle_new_collection_period(self):
         self.sent_yet = False
 
+class ScheduleManager(object):
+    def __init__(self, schedule):
+        def calc_sched(day_idx):
+            days = "mon", "tue", "wed", "thu", "fri", "sat", "sun"
+            # If day isn't defined, 9-5. If defined and empty, not on that day
+            day_sched = schedule.get(days[day_idx], '9-17')
+            if not day_sched:
+                return None
+            day_sched = [int(x) for x in day_sched.split('-')]
+            return day_sched
+
+        self.schedule = [calc_sched(d) for d in range(7)]
+
+    def get_next_sleep(self):
+        sleep_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        sched = None
+        while True:
+            sched = self.schedule[sleep_day.weekday()]
+            if sched is None:
+                sleep_day -= timedelta(1)
+            else:
+                break
+        return sleep_day.replace(hour=sched[1])
+
+    def get_next_wake(self):
+        wake_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(1)
+        sched = None
+        while True:
+            sched = self.schedule[wake_day.weekday()]
+            if sched is None:
+                wake_day += timedelta(1)
+            else:
+                break
+        return wake_day.replace(hour=sched[0])
+
 class Collector(object):
     # Synchronize once every minute
     TIME_SYNC_INTERVAL = 60
@@ -121,6 +156,7 @@ class Collector(object):
         self.redis = Redis()
         self.last_published_period = None
         self.mcm = MeshControlManager(self.set_value)
+        self.schm = ScheduleManager(sensei_config["schedule"])
 
     def handle_heartbeat(self, hb):
         if hb.epoch_seconds != hb.received_at:
@@ -275,6 +311,11 @@ class Collector(object):
 
             if time.time() - self.last_time_sync > self.TIME_SYNC_INTERVAL:
                 self.sync_time()
+                # set_mesh_control only updates if values are different than
+                # previously set, so it's okay to re-set them frequently if
+                # they don't change.
+                self.mcm.set_mesh_control(sleep_time=self.schm.get_next_sleep(),
+                                          wake_time=self.schm.get_next_wake())
 
             if time.time() - self.last_event > Collector.NO_DATA_TIMEOUT:
                 self.restart_serial()
