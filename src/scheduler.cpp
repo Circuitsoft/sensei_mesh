@@ -236,8 +236,7 @@ void set_clock_time(int32_t epoch, uint16_t ms, clock_source_t clock_source, int
   if (err_code != NRF_SUCCESS) {
     logf("error stopping clock_sync timer: %s", ERR_TO_STR(err_code));
   }
-  uint16_t start_delay = (1000 - ms) % 1000;
-  start_clock(start_delay);
+  start_clock(ms % 1000);
 }
 
 int32_t get_clock_ms() {
