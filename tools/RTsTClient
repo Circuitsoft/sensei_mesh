@@ -3,8 +3,13 @@
 # Make sure any spaces read wind up in $x
 IFS=''
 
+if hash gdate 2>/dev/null; then
+  date=gdate
+else
+  date=date
+fi
+
 JLinkRTTClient "$@" | while read x
 do
-	echo -n $(date +"%H:%M:%S.%3N")
-	printf ': %s\n' "$x"
+	printf '%s: %s\n' $($date +"%H:%M:%S.%3N") "$x"
 done
