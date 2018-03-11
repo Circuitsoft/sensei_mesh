@@ -54,6 +54,8 @@ static void do_heartbeat() {
 
 static void periodic_timer_cb(void * p_context)
 {
+  m_clock_second_start_counter_value = app_timer_cnt_get();
+  
   log("periodic_timer_cb");
   m_current_time += 1;
   DBG_TICK_PIN(6);
@@ -64,7 +66,6 @@ static void periodic_timer_cb(void * p_context)
 #endif
 
   if (m_current_time % mesh_control_get_wake_interval() == 0) {
-    m_clock_second_start_counter_value = app_timer_cnt_get();
     m_scheduler_state = SCHEDULER_STATE_BEFORE_HB;
     rbc_mesh_start();
     nrf_gpio_pin_clear(STATUS_LED_PIN); // Turn on status led
@@ -241,7 +242,8 @@ void set_clock_time(int32_t epoch, uint16_t ms, clock_source_t clock_source, int
   if (err_code != NRF_SUCCESS) {
     logf("error stopping clock_sync timer: %s", ERR_TO_STR(err_code));
   }
-  start_clock(ms % 1000);
+  logf("setting_clock_time: ms=%d", ms);
+  start_clock(1000 - (ms % 1000));
 }
 
 int32_t get_clock_ms() {
