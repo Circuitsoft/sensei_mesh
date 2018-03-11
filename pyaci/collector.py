@@ -102,6 +102,9 @@ class MeshControlManager(object):
 
 class ScheduleManager(object):
     def __init__(self, schedule):
+        if schedule is None:
+            # Default schedule is 9-5 weekdays
+            schedule = ['9-17']*5 + ['']*2
         def calc_sched(day_idx):
             days = "mon", "tue", "wed", "thu", "fri", "sat", "sun"
             # If day isn't defined, 9-5. If defined and empty, not on that day
@@ -114,6 +117,8 @@ class ScheduleManager(object):
         self.schedule = [calc_sched(d) for d in range(7)]
 
     def get_next_sleep(self):
+        if self.schedule == [None]*7:
+            return 0
         sleep_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         sched = None
         while True:
@@ -125,6 +130,8 @@ class ScheduleManager(object):
         return sleep_day.replace(hour=sched[1])
 
     def get_next_wake(self):
+        if self.schedule == [None]*7:
+            return 0
         wake_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(1)
         sched = None
         while True:
@@ -156,7 +163,7 @@ class Collector(object):
         self.redis = Redis()
         self.last_published_period = None
         self.mcm = MeshControlManager(self.set_value)
-        self.schm = ScheduleManager(sensei_config["schedule"])
+        self.schm = ScheduleManager(sensei_config.get("schedule"))
 
     def handle_heartbeat(self, hb):
         if hb.epoch_seconds != hb.received_at:
