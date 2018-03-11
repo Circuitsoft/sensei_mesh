@@ -5,3 +5,11 @@ server:
 classroom_id: 1
 mesh_network:
   serial_path: /dev/cu.usbserial-A105RB12
+schedule:
+  sun:
+  mon: 8-15
+  tue: 8-15
+  wed: 8-15
+  thu: 8-15
+  fri: 8-15
+  sat:

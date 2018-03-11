@@ -103,6 +103,9 @@ class SensorValues(object):
     def __init__(self, sensor_id, data):
         self.sensor_id = sensor_id
         if len(data) == 19:
+            # Make mesh_control_version = -1
+            data.extend((255, 255))
+        if len(data) == 21:
             self.proximity_ids = data[0:5]
             self.proximity_rssi = data[5:10]
             self.battery = data[10]
@@ -110,7 +113,7 @@ class SensorValues(object):
             self.accel_y = data[12]
             self.accel_z = data[13]
             self.status = data[14]
-            self.valid_time = unpack('<i',bytearray(data[15:19]))[0]
+            self.valid_time, self.mesh_control_version = unpack('<ih', bytearray(data[15:21]))
             self.is_valid = True
         else:
             self.is_valid = False
@@ -118,7 +121,7 @@ class SensorValues(object):
             self.data = data
     def __repr__(self):
         if self.is_valid:
-            return "SensorValues: sensor_id:{sensor_id} proximity_ids:{proximity_ids} proximity_rssi:{proximity_rssi} battery:{battery}, accel:({accel_x}, {accel_y}, {accel_z}), status:{status}, valid_time:{valid_time}".format(**vars(self))
+            return "SensorValues: sensor_id:{sensor_id} proximity_ids:{proximity_ids} proximity_rssi:{proximity_rssi} battery:{battery}, accel:({accel_x}, {accel_y}, {accel_z}), status:{status}, mesh_control_version:{mesh_control_version}, valid_time:{valid_time}".format(**vars(self))
         else:
             return "SensorValues: invalid data from sensor {sensor_id}: ({data})".format(sensor_id=self.sensor_id, data=self.data)
 

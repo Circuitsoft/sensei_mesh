@@ -6,7 +6,10 @@
 #include "config.h"
 #include "handles.h"
 #include "jostle_detect.h"
+extern "C" {
 #include "rbc_mesh.h"
+#include "handle_storage.h"
+}
 #include "scheduler.h"
 #include "shoe_accel.h"
 #include <app_error.h>
@@ -40,6 +43,16 @@ void gather_sensor_data() {
   float voltage;
   memset(&m_value, 0, sizeof(sensor_value_t));
   m_value.valid_time = get_clock_time();
+  {
+      handle_info_t mesh_control_info;
+      handle_storage_info_get(MESH_CONTROL_HANDLE, &mesh_control_info);
+      // Seriously, why do I need do decrement the reference count? Nothing in
+      // the API signature indicates that the underlying packet might be
+      // referenced...
+      mesh_packet_ref_count_dec(mesh_control_info.p_packet);
+
+      m_value.mesh_control_version = mesh_control_info.version;
+  }
   log("checking voltage");
   voltage = get_battery_voltage();
   // Convert to percent

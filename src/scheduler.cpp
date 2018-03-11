@@ -58,6 +58,11 @@ static void periodic_timer_cb(void * p_context)
   m_current_time += 1;
   DBG_TICK_PIN(6);
 
+#if defined(BOARD_SHOE_SENSORv2)
+  if (mesh_control_should_sleep(m_current_time))
+      return;
+#endif
+
   if (m_current_time % mesh_control_get_wake_interval() == 0) {
     m_clock_second_start_counter_value = app_timer_cnt_get();
     m_scheduler_state = SCHEDULER_STATE_BEFORE_HB;
