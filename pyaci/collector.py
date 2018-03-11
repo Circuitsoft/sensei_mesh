@@ -91,7 +91,7 @@ class MeshControlManager(object):
     def handle_aci_eventupdate(self, sensor_id, sensor_mca):
         if self.target_mca_version == 0:
             if sensor_id == MOTHERNODE_ID:
-                self.target_mca_version = sensor_mca
+                self.target_mca_version = sensor_mca + 1
         elif not self.sent_yet:
             if (sensor_id != MOTHERNODE_ID) and (self.target_mca_version > sensor_mca):
                 self.send_mesh_control()
