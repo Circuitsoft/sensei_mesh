@@ -5,8 +5,39 @@
 static uint8_t rssi_sorted[MAX_PROXIMITY_TRACKING_COUNT];
 static uint8_t sensor_ids_sorted[MAX_PROXIMITY_TRACKING_COUNT];
 
+static void proximity_sort()
+{
+  uint8_t temp;
+  bool any_moved;
+  do {
+    any_moved = false;
+    for (int i = 1; i < MAX_PROXIMITY_TRACKING_COUNT; i++)
+      if (rssi_sorted[i-1] > rssi_sorted[i]) {
+        any_moved = true;
+
+        temp = rssi_sorted[i-1];
+        rssi_sorted[i-1] = rssi_sorted[i];
+        rssi_sorted[i] = temp;
+
+        temp = sensor_ids_sorted[i-1];
+        sensor_ids_sorted[i-1] = sensor_ids_sorted[i];
+        sensor_ids_sorted[i] = temp;
+      }
+  } while(any_moved);
+}
+
 void proximity_add_entry(uint8_t sensor_id, uint8_t rssi) {
   uint8_t i,j;
+
+  // Update if entry already exists
+  for (i=0; i < MAX_PROXIMITY_TRACKING_COUNT; i++) {
+    if (sensor_id == sensor_ids_sorted[i]) {
+      rssi_sorted[i] = rssi;
+      proximity_sort();
+      return;
+    }
+  }
+
   for (i=0; i < MAX_PROXIMITY_TRACKING_COUNT; i++) {
     if (rssi < rssi_sorted[i] || rssi_sorted[i] == 0) {
       j = MAX_PROXIMITY_TRACKING_COUNT-1;
