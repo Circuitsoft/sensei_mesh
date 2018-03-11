@@ -11,28 +11,41 @@ def configure_sensor(serial_device, sensor_id, serial_enabled, channel, sleep_en
     # Wait for serial connection to be ready
     time.sleep(2)
     cmd = sensei_cmd.SetConfig(sensor_id, serial_enabled, channel, sleep_enabled)
-    data = cmd.serialize()
-    aci.write_aci_cmd(AciCommand.AciAppCommand(data=data,length=len(data)+1))
+    sensei_cmd.run(aci, cmd)
 
     # Wait for flash to be written
-    time.sleep(2)
-    aci.write_aci_cmd(AciCommand.AciRadioReset())
+    check_status_cmd = sensei_cmd.IsConfigUpdatePending()
+    did_set_id = False
+    print("Configuring sensor with id: %d" % sensor_id)
+    while True:
+        events = sensei_cmd.run(aci, check_status_cmd)
+        if events and len(events) > 0:
+            response = events[0]
+            if len(response.Data) != 1:
+                print("Unexpected response: %s, len(events) = %d" % (response, len(events)))
+                # continue
+            elif response.Data[0] == 0:
+                did_set_id = True
+                break
+        else:
+            print("No response back from board!")
+            break
+        time.sleep(1);
+
+    if did_set_id:
+        aci.write_aci_cmd(AciCommand.AciRadioReset())
 
     aci.stop()
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument("-d", "--device", dest="device", required=True,
-                        help="Serial device, e.g. /dev/cu.usbserial-DO00C2G2")
+    parser.add_argument("-d", "--device", dest="device", required=True, help="Serial device, e.g. /dev/cu.usbserial-DO00C2G2")
     parser.add_argument('id', type=int, help='the id to assign this sensor')
     parser.add_argument('--no-sleeping', dest='sleep_enabled', action='store_false')
     parser.set_defaults(sleep_enabled=True)
     parser.add_argument('--no-serial', dest='serial_enabled', action='store_false')
     parser.set_defaults(serial_enabled=True)
-    parser.add_argument('--channel', type=int,
-                        help='bluetooth channel of sensei network: should be 1-39 ' \
-                        + '(one of 37,38,39 usually best)')
+    parser.add_argument('--channel', type=int, help='bluetooth channel of sensei network: should be 1-39 (one of 37,38,39 usually best)')
     parser.set_defaults(channel=38)
     options = parser.parse_args()
-    configure_sensor(options.device, options.id, options.serial_enabled,
-                     options.channel, options.sleep_enabled)
+    configure_sensor(options.device, options.id, options.serial_enabled, options.channel, options.sleep_enabled)

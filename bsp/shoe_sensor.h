@@ -14,22 +14,22 @@ extern "C" {
 #define LEDS_NUMBER    0
 #define BUTTONS_NUMBER 0
 
-
-#define BUTTONS_LIST { BUTTON_1, BUTTON_2 }
-
-#define BSP_BUTTON_0   BUTTON_1
-#define BSP_BUTTON_1   BUTTON_2
-
-#define BSP_BUTTON_0_MASK (1<<BSP_BUTTON_0)
-#define BSP_BUTTON_1_MASK (1<<BSP_BUTTON_1)
-
-#define BUTTONS_MASK   (BSP_BUTTON_0_MASK | BSP_BUTTON_1_MASK )
-
 #define RX_PIN_NUMBER  0
 #define TX_PIN_NUMBER  1
 //#define CTS_PIN_NUMBER 0xff
 //#define RTS_PIN_NUMBER 0xff
 #define HWFC           false
+
+#define SDA_PIN_NUMBER 26
+#define SCL_PIN_NUMBER 27
+
+// Low frequency clock source to be used by the SoftDevice
+#define NRF_CLOCK_LFCLKSRC      {.source        = NRF_CLOCK_LF_SRC_XTAL,            \
+                                 .rc_ctiv       = 0,                                \
+                                 .rc_temp_ctiv  = 0,                                \
+                                 .xtal_accuracy = NRF_CLOCK_LF_XTAL_ACCURACY_75_PPM}
+
+
 
 #ifdef __cplusplus
 }

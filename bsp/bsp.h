@@ -46,10 +46,11 @@
 #ifdef BSP_UART_SUPPORT
 #include "app_uart.h"
 
+#endif // BSP_UART_SUPPORT
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-#endif // BSP_UART_SUPPORT
 
 #define BUTTON_ERASE_BONDING BSP_BUTTON_0_MASK
 #define BUTTON_ERASE_ALL     BSP_BUTTON_1_MASK

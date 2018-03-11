@@ -62,27 +62,21 @@ class AciEventPkt(object):
                 logging.error('Packet size must be > 1, packet contents: %s', str(pkt))
 
     def __repr__(self):
-        return "%s length:%d opcode:0x%02x data:%s" % (self.__class__.__name__,
-                                                       self.Len, self.OpCode, self.Data)
+        return str.format("%s length:%d opcode:0x%02x data:%s" %(self.__class__.__name__, self.Len, self.OpCode, self.Data))
 
 class AciDeviceStarted(AciEventPkt):
     #OpCode = 0x81
     def __init__(self,pkt):
         super(AciDeviceStarted, self).__init__(pkt)
         if self.Len != 4:
-            logging.error("Invalid length for %s event: %s",
-                               self.__class__.__name__, str(pkt))
+            logging.error("Invalid length for %s event: %s", self.__class__.__name__, str(pkt))
         else:
             self.OperatingMode = pkt[2]
             self.HWError = pkt[3]
             self.DataCreditAvailable = pkt[4]
 
     def __repr__(self):
-        return "%s length:%d opcode:0x%02x operating_mode:0x%02x hw_error:0x%02x " \
-             + "data_credit_available:0x%02x" % (self.__class__.__name__,
-                                                 self.Len, self.OpCode,
-                                                 self.OperatingMode, self.HWError,
-                                                 self.DataCreditAvailable)
+        return str.format("%s length:%d opcode:0x%02x operating_mode:0x%02x hw_error:0x%02x data_credit_available:0x%02x" %(self.__class__.__name__, self.Len, self.OpCode, self.OperatingMode, self.HWError, self.DataCreditAvailable))
 
 class AciEchoRsp(AciEventPkt):
     #OpCode = 0x82
@@ -94,18 +88,14 @@ class AciCmdRsp(AciEventPkt):
     def __init__(self,pkt):
         super(AciCmdRsp, self).__init__(pkt)
         if self.Len < 3:
-            logging.error("Invalid length for %s event: %s",
-                               self.__class__.__name__, str(pkt))
+            logging.error("Invalid length for %s event: %s", self.__class__.__name__, str(pkt))
         else:
             self.CommandOpCode = pkt[2]
             self.StatusCode = pkt[3]
             self.Data = pkt[4:]
 
     def __repr__(self):
-        return "%s length:%d opcode:0x%02x command_opcode:%s status_code:%s data:%s" % (
-                    self.__class__.__name__, self.Len, self.OpCode,
-                    AciCommand.AciCommandLookUp(self.CommandOpCode),
-                    AciStatusLookUp(self.StatusCode), self.Data)
+        return str.format("%s length:%d opcode:0x%02x command_opcode:%s status_code:%s data:%s" %(self.__class__.__name__, self.Len, self.OpCode, AciCommand.AciCommandLookUp(self.CommandOpCode), AciStatusLookUp(self.StatusCode), self.Data))
 
 class SensorValues(object):
     STATUS_JOSTLE_FLAG = 0x01
@@ -113,6 +103,9 @@ class SensorValues(object):
     def __init__(self, sensor_id, data):
         self.sensor_id = sensor_id
         if len(data) == 19:
+            # Make mesh_control_version = -1
+            data.extend((255, 255))
+        if len(data) == 21:
             self.proximity_ids = data[0:5]
             self.proximity_rssi = data[5:10]
             self.battery = data[10]
@@ -120,7 +113,7 @@ class SensorValues(object):
             self.accel_y = data[12]
             self.accel_z = data[13]
             self.status = data[14]
-            self.valid_time = unpack('<i',bytearray(data[15:19]))[0]
+            self.valid_time, self.mesh_control_version = unpack('<ih', bytearray(data[15:21]))
             self.is_valid = True
         else:
             self.is_valid = False
@@ -128,21 +121,16 @@ class SensorValues(object):
             self.data = data
     def __repr__(self):
         if self.is_valid:
-            return "SensorValues: sensor_id:{sensor_id} proximity_ids:{proximity_ids} " \
-                 + "proximity_rssi:{proximity_rssi} battery:{battery}, accel:(" \
-                 + "{accel_x}, {accel_y}, {accel_z}), status:{status}, " \
-                 + "valid_time:{valid_time}".format(**vars(self))
+            return "SensorValues: sensor_id:{sensor_id} proximity_ids:{proximity_ids} proximity_rssi:{proximity_rssi} battery:{battery}, accel:({accel_x}, {accel_y}, {accel_z}), status:{status}, mesh_control_version:{mesh_control_version}, valid_time:{valid_time}".format(**vars(self))
         else:
-            return "SensorValues: invalid data from sensor {sensor_id}: ({data})"\
-                    .format(**vars(self))
+            return "SensorValues: invalid data from sensor {sensor_id}: ({data})".format(sensor_id=self.sensor_id, data=self.data)
 
 class AciEventNew(AciEventPkt):
     #OpCode = 0xB3
     def __init__(self,pkt):
         super(AciEventNew, self).__init__(pkt)
         if self.Len < 3:
-            logging.error("Invalid length for %s event: %s",
-                               self.__class__.__name__, str(pkt))
+            logging.error("Invalid length for %s event: %s", self.__class__.__name__, str(pkt))
         else:
             self.ValueHandle = (pkt[3] << 8) + pkt[2]
             self.VersionDelta = (pkt[5] << 8) + pkt[4]
@@ -156,12 +144,9 @@ class AciEventNew(AciEventPkt):
 
     def __repr__(self):
         if self.is_sensor_update():
-            return "%s(%d) %s" % (self.__class__.__name__, self.VersionDelta,
-                                  self.sensor_values())
+            return str.format("%s(%d) %s" %(self.__class__.__name__, self.VersionDelta, self.sensor_values()))
         else:
-            return "%s length:%d opcode:0x%02x value_handle:0x%04x data:%s" % (
-                self.__class__.__name__, self.Len, self.OpCode,
-                self.ValueHandle, self.Data)
+            return str.format("%s length:%d opcode:0x%02x value_handle:0x%04x data:%s" %(self.__class__.__name__, self.Len, self.OpCode, self.ValueHandle, self.Data))
 
 class AciEventUpdate(AciEventNew):
     #OpCode = 0xB4
@@ -182,15 +167,10 @@ class HeartbeatMsg(object):
     def __init__(self, data):
         if len(data) != 18:
             raise ValueError("Error: expected 18 bytes, got %s" % data)
-        (self.rssi, self.received_at, self.received_at_ms, self.local_clock_version,
-         self.sensor_id, self.epoch_seconds, self.epoch_ms, self.clock_version
-         ) = unpack('<BiHHBiHH', bytearray(data))
+        (self.rssi, self.received_at, self.received_at_ms, self.local_clock_version, self.sensor_id, self.epoch_seconds, self.epoch_ms, self.clock_version) = unpack('<BiHHBiHH', bytearray(data))
 
     def __repr__(self):
-        return "Heartbeat: rssi:{rssi} sensor_id:{sensor_id} epoch:{epoch_seconds} " \
-             + "ms:{epoch_ms} clock_version:{clock_version} received_at:{received_at} " \
-             + "received_at_ms:{received_at_ms} " \
-             + "local_clock_version:{local_clock_version}".format(**vars(self))
+        return "Heartbeat: rssi:{rssi} sensor_id:{sensor_id} epoch:{epoch_seconds} ms:{epoch_ms} clock_version:{clock_version} received_at:{received_at} received_at_ms:{received_at_ms} local_clock_version:{local_clock_version}".format(**vars(self))
 
 class AciEventAppEvt(AciEventPkt):
     APP_EVENT_OPCODE_HEARTBEAT = 0x01

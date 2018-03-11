@@ -1,8 +1,9 @@
+#ifdef ACCEL_ADXL337
+
 #include "shoe_accel.h"
 #include "gpio_pins.h"
 #include "nrf_gpio.h"
 #include "wiring_analog.h"
-
 
 #define ACCEL_POWER_PIN 23
 #define X_PIN 4
@@ -27,3 +28,5 @@ void read_shoe_accel(int8_t *x, int8_t *y, int8_t *z) {
   *y = 0; // Y is not connected currently
   *z = (int8_t)(analogRead(Z_PIN) - 512 / 4);
 }
+
+#endif

@@ -1,0 +1,57 @@
+{
+    "version": "0.4.2",
+    "configurations": [
+        {
+            "name": "Debug gdb",
+            "type": "cppdbg",
+            "request": "launch",
+            "targetArchitecture": "arm",
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "miDebuggerPath": "C:\\Program Files (x86)\\GNU Tools ARM Embedded\\6 2017-q2-update\\bin\\arm-none-eabi-gdb.exe",
+            // "program": "${workspaceRoot}\\_build682181166\\rbc_mesh_BOARD_PCA10040_nRF52_debug.elf",
+            "program": "${workspaceRoot}\\_build682741836\\rbc_mesh_BOARD_PCA10040_nRF52_debug.elf",
+            // "program": "${workspaceRoot}\\_build\\rbc_mesh_BOARD_SHOE_SENSORv2_nRF52_debug.elf",
+            "cwd": "${workspaceRoot}",
+            "customLaunchSetupCommands": [
+                {
+                    "description": "Set remote target",
+                    "text": "file C:/Users/georg/work/sensei_mesh/_build682741836/rbc_mesh_BOARD_PCA10040_nRF52_debug.elf"
+                    // "text": "file C:/Users/georg/work/sensei_mesh/_build/rbc_mesh_BOARD_SHOE_SENSORv2_nRF52_debug.elf"
+                },
+                {
+                    "description": "Set remote target",
+                    "text": "target remote localhost:2331"
+                },
+                // {
+                //     "description": "Set hardware breakpoints",
+                //     "text": "set remote hardware-breakpoint-limit 6"
+                // },
+                // {
+                //     "description": "Set hardware breakpoints",
+                //     "text": "set remote hardware-watchpoint-limit 4"
+                // },
+                // {
+                //     "description": "Load code",
+                //     "text": "load"
+                // },
+                {
+                    "description": "Reset 1",
+                    "text": "monitor reset"
+                }
+                // ,
+                // {
+                //     "description": "Break",
+                //     "text": "break main"
+                // }
+            ],
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}

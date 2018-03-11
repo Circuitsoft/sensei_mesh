@@ -32,7 +32,11 @@ static __INLINE uint16_t pstorage_flash_page_size()
 
 static __INLINE uint32_t pstorage_flash_page_end()
 {
+  #ifdef NRF52
+   uint32_t bootloader_addr = *(uint32_t *)(0x10001014);
+  #else
    uint32_t bootloader_addr = NRF_UICR->BOOTLOADERADDR;
+  #endif
 
    return ((bootloader_addr != PSTORAGE_FLASH_EMPTY_MASK) ?
            (bootloader_addr/ PSTORAGE_FLASH_PAGE_SIZE) : NRF_FICR->CODESIZE);

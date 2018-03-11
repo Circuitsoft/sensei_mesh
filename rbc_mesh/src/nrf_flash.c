@@ -8,7 +8,8 @@ are permitted provided that the following conditions are met:
   1. Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
 
-  2. Redistributions in binary form must reproduce the above copyright notice, this
+  2. Redistributions in binary form must reproduce the above copyright notice,
+this
   list of conditions and the following disclaimer in the documentation and/or
   other materials provided with the distribution.
 
@@ -28,8 +29,10 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************/
 
-#include <stdint.h>
+#ifdef MESH_DFU &&MESH_DFU = 1
+
 #include "nrf_flash.h"
+#include <stdint.h>
 #ifdef NRF51
 #include "nrf.h"
 #include "nrf51_bitfields.h"
@@ -41,90 +44,80 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @param page_address Address of the first word in the page to be erased.
  */
-void nrf_flash_erase(uint32_t * page_address, uint32_t size)
-{
-    uint8_t num_pages = (size + NRF_FLASH_PAGE_SIZE - 1) / NRF_FLASH_PAGE_SIZE;
+void nrf_flash_erase(uint32_t *page_address, uint32_t size) {
+  uint8_t num_pages = (size + NRF_FLASH_PAGE_SIZE - 1) / NRF_FLASH_PAGE_SIZE;
 
-    for(uint8_t  i = 0; i < num_pages ; i++)
-    {
-        // Turn on flash erase enable and wait until the NVMC is ready:
-        NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Een << NVMC_CONFIG_WEN_Pos);
+  for (uint8_t i = 0; i < num_pages; i++) {
+    // Turn on flash erase enable and wait until the NVMC is ready:
+    NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Een << NVMC_CONFIG_WEN_Pos);
 
-        while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
-        {
-            // Do nothing.
-        }
-
-        // Erase page:
-        NRF_NVMC->ERASEPAGE = (uint32_t)page_address;
-
-        while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
-        {
-        // Do nothing.
-        }
-
-        // Turn off flash erase enable and wait until the NVMC is ready:
-        NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Ren << NVMC_CONFIG_WEN_Pos);
-
-        while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
-        {
-            // Do nothing.
-        }
-        page_address += NRF_FLASH_PAGE_SIZE / sizeof(uint32_t *);
+    while (NRF_NVMC->READY == NVMC_READY_READY_Busy) {
+      // Do nothing.
     }
-}
 
+    // Erase page:
+    NRF_NVMC->ERASEPAGE = (uint32_t)page_address;
+
+    while (NRF_NVMC->READY == NVMC_READY_READY_Busy) {
+      // Do nothing.
+    }
+
+    // Turn off flash erase enable and wait until the NVMC is ready:
+    NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Ren << NVMC_CONFIG_WEN_Pos);
+
+    while (NRF_NVMC->READY == NVMC_READY_READY_Busy) {
+      // Do nothing.
+    }
+    page_address += NRF_FLASH_PAGE_SIZE / sizeof(uint32_t *);
+  }
+}
 
 /** @brief Function for filling a page in flash with a value.
  *
  * @param[in] address Address of the first word in the page to be filled.
  * @param[in] value Value to be written to flash.
  */
-void nrf_flash_store(uint32_t * p_dest, uint8_t * p_src, uint32_t size, uint32_t offset)
-{
-    static uint8_t buffer[4]  __attribute__((aligned (4)));
-    uint8_t cnt = 0;
-    uint8_t has_content = 0;
+void nrf_flash_store(uint32_t *p_dest, uint8_t *p_src, uint32_t size,
+                     uint32_t offset) {
+  static uint8_t buffer[4] __attribute__((aligned(4)));
+  uint8_t cnt = 0;
+  uint8_t has_content = 0;
 
-    p_dest += offset / 4;
+  p_dest += offset / 4;
 
-    for(uint32_t i=0; i < size ; i++)
-    {
-        has_content |= ~(*p_src);
-        buffer[cnt++]  = *p_src;
+  for (uint32_t i = 0; i < size; i++) {
+    has_content |= ~(*p_src);
+    buffer[cnt++] = *p_src;
 
-        p_src++;
+    p_src++;
 
-        if(cnt == 4)
-        {
-            cnt = 0;
-            if (has_content)
-            {
-                // Turn on flash write enable and wait until the NVMC is ready:
-                NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos);
+    if (cnt == 4) {
+      cnt = 0;
+      if (has_content) {
+        // Turn on flash write enable and wait until the NVMC is ready:
+        NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos);
 
-                while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
-                {
-                // Do nothing.
-                }
-
-                *p_dest = *(uint32_t *)buffer;
-
-                while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
-                {
-                    // Do nothing.
-                }
-
-                // Turn off flash write enable and wait until the NVMC is ready:
-                NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Ren << NVMC_CONFIG_WEN_Pos);
-
-                while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
-                {
-                    // Do nothing.
-                }
-            }
-            has_content = 0;
-            p_dest++;
+        while (NRF_NVMC->READY == NVMC_READY_READY_Busy) {
+          // Do nothing.
         }
+
+        *p_dest = *(uint32_t *)buffer;
+
+        while (NRF_NVMC->READY == NVMC_READY_READY_Busy) {
+          // Do nothing.
+        }
+
+        // Turn off flash write enable and wait until the NVMC is ready:
+        NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Ren << NVMC_CONFIG_WEN_Pos);
+
+        while (NRF_NVMC->READY == NVMC_READY_READY_Busy) {
+          // Do nothing.
+        }
+      }
+      has_content = 0;
+      p_dest++;
     }
+  }
 }
+
+#endif

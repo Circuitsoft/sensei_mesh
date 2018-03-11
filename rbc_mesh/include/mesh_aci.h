@@ -8,7 +8,8 @@ are permitted provided that the following conditions are met:
   1. Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
 
-  2. Redistributions in binary form must reproduce the above copyright notice, this
+  2. Redistributions in binary form must reproduce the above copyright notice,
+this
   list of conditions and the following disclaimer in the documentation and/or
   other materials provided with the distribution.
 
@@ -30,34 +31,35 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _MESH_ACI_H__
 #define _MESH_ACI_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "rbc_mesh.h"
 #include "toolchain.h"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-typedef __packed_armcc enum
-{
-  ACI_STATUS_SUCCESS                                        = 0x00,
-  ACI_STATUS_ERROR_UNKNOWN                                  = 0x80,
-  ACI_STATUS_ERROR_INTERNAL                                 = 0x81,
-  ACI_STATUS_ERROR_CMD_UNKNOWN                              = 0x82,
-  ACI_STATUS_ERROR_DEVICE_STATE_INVALID                     = 0x83,
-  ACI_STATUS_ERROR_INVALID_LENGTH                           = 0x84,
-  ACI_STATUS_ERROR_INVALID_PARAMETER                        = 0x85,
-  ACI_STATUS_ERROR_BUSY                                     = 0x86,
-  ACI_STATUS_ERROR_INVALID_DATA                             = 0x87,
-  ACI_STATUS_ERROR_PIPE_INVALID                             = 0x90,
-  ACI_STATUS_RESERVED_START                                 = 0xF0,
-  ACI_STATUS_RESERVED_END                                   = 0xFF
+typedef __packed_armcc enum {
+  ACI_STATUS_SUCCESS = 0x00,
+  ACI_STATUS_ERROR_UNKNOWN = 0x80,
+  ACI_STATUS_ERROR_INTERNAL = 0x81,
+  ACI_STATUS_ERROR_CMD_UNKNOWN = 0x82,
+  ACI_STATUS_ERROR_DEVICE_STATE_INVALID = 0x83,
+  ACI_STATUS_ERROR_INVALID_LENGTH = 0x84,
+  ACI_STATUS_ERROR_INVALID_PARAMETER = 0x85,
+  ACI_STATUS_ERROR_BUSY = 0x86,
+  ACI_STATUS_ERROR_INVALID_DATA = 0x87,
+  ACI_STATUS_ERROR_PIPE_INVALID = 0x90,
+  ACI_STATUS_RESERVED_START = 0xF0,
+  ACI_STATUS_RESERVED_END = 0xFF
 } __packed_gcc aci_status_code_t;
 
-typedef __packed_armcc enum
-{
-    ACI_FLAG_PERSISTENT = 0x00,
-    ACI_FLAG_TX_EVENT   = 0x01
+typedef __packed_armcc enum {
+  ACI_FLAG_PERSISTENT = 0x00,
+  ACI_FLAG_TX_EVENT = 0x01
 } __packed_gcc aci_flag_t;
-
 
 /** @brief Initialize serial handler */
 void mesh_aci_init(void);
@@ -69,10 +71,16 @@ uint32_t mesh_aci_start(void);
 void mesh_aci_command_check(void);
 
 /** @brief rbc_mesh event handler */
-void mesh_aci_rbc_event_handler(rbc_mesh_event_t* p_evt);
+void mesh_aci_rbc_event_handler(rbc_mesh_event_t *p_evt);
 
 /** Set app command handler */
-typedef uint16_t (*app_cmd_handler_t) (uint8_t *data, uint8_t length, uint8_t *response, uint8_t *response_length);
+typedef uint16_t (*app_cmd_handler_t)(uint8_t *data, uint8_t length,
+                                      uint8_t *response,
+                                      uint8_t *response_length);
 void mesh_aci_app_cmd_handler_set(app_cmd_handler_t app_cmd_handler);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MESH_ACI_H__ */

@@ -39,6 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "transport_control.h"
 #include "event_handler.h"
 #include "rbc_mesh_common.h"
+#include "assert.h"
 
 #ifdef MESH_DFU
 #include "dfu_app.h"
@@ -201,7 +202,6 @@ static void timeslot_end(void)
 */
 void timeslot_sd_event_handler(uint32_t evt)
 {
-
     switch (evt)
     {
         case NRF_EVT_RADIO_SESSION_IDLE:
@@ -329,13 +329,13 @@ static nrf_radio_signal_callback_return_param_t* radio_signal_callback(uint8_t s
                     ts_extend(m_negotiate_timeslot_length);
                 }
             }
-            // else
-            // {
-            //     if (m_timeslot_length + m_negotiate_timeslot_length < TIMESLOT_MAX_LENGTH_US)
-            //     {
-            //         ts_extend(m_negotiate_timeslot_length);
-            //     }
-            // }
+            else
+            {
+                if (m_timeslot_length + m_negotiate_timeslot_length < TIMESLOT_MAX_LENGTH_US)
+                {
+                    ts_extend(m_negotiate_timeslot_length);
+                }
+            }
 
             break;
 
@@ -460,7 +460,11 @@ uint32_t timeslot_init(nrf_clock_lfclksrc_t lfclksrc)
 
 void timeslot_stop(void)
 {
-    APP_ERROR_CHECK(sd_radio_session_close());
+    uint32_t res;
+    res = sd_radio_session_close();
+    if (res != NRF_SUCCESS) {
+      logf("Couldn't close radio session: %s", ERR_TO_STR(res));
+    }
 
     m_timeslot_forced_command = TS_FORCED_COMMAND_STOP;
     uint32_t was_masked;
@@ -490,7 +494,12 @@ void timeslot_restart(void)
 
 uint32_t timeslot_resume(void)
 {
-    APP_ERROR_CHECK(sd_radio_session_open(&radio_signal_callback));
+    uint32_t res;
+    res = sd_radio_session_open(&radio_signal_callback);
+    if(res != NRF_SUCCESS) {
+      logf("Couldn't open radio session: %s", ERR_TO_STR(res));
+      return res;
+    }
     m_timeslot_forced_command = TS_FORCED_COMMAND_NONE;
 
     if (timeslot_is_in_ts())

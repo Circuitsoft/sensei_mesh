@@ -20,6 +20,7 @@ typedef __packed_armcc struct
     int8_t accel_z;
     uint8_t status;
     int32_t valid_time;
+    int16_t mesh_control_version;
 } __packed_gcc sensor_value_t;
 
 void sensor_init();

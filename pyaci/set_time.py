@@ -11,13 +11,11 @@ def set_time(serial_device):
     # Wait for serial connection to be ready
     time.sleep(2)
     cmd = sensei_cmd.SetTime()
-    data = cmd.serialize()
-    aci.write_aci_cmd(AciCommand.AciAppCommand(data=data,length=len(data)+1))
+    sensei_cmd.run(cmd)
     aci.stop()
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument("-d", "--device", dest="device", required=True,
-                        help="Serial device, e.g. /dev/cu.usbserial-DO00C2G2")
+    parser.add_argument("-d", "--device", dest="device", required=True, help="Serial device, e.g. /dev/cu.usbserial-DO00C2G2")
     options = parser.parse_args()
     set_time(options.device)

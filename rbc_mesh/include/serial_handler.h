@@ -8,7 +8,8 @@ are permitted provided that the following conditions are met:
   1. Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
 
-  2. Redistributions in binary form must reproduce the above copyright notice, this
+  2. Redistributions in binary form must reproduce the above copyright notice,
+this
   list of conditions and the following disclaimer in the documentation and/or
   other materials provided with the distribution.
 
@@ -30,20 +31,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _SERIAL_HANDLER_H__
 #define _SERIAL_HANDLER_H__
 
-#define SERIAL_DATA_MAX_LEN  (72)
+#ifdef __cplusplus
+extern "C" {
+#endif
+#define SERIAL_DATA_MAX_LEN (72)
 
-#include "serial_evt.h"
 #include "serial_command.h"
+#include "serial_evt.h"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-typedef __packed_armcc struct
-{
+typedef __packed_armcc struct {
   uint8_t status_byte;
   uint8_t buffer[SERIAL_DATA_MAX_LEN + 2];
 } __packed_gcc serial_data_t;
-
 
 void serial_handler_init(void);
 
@@ -53,11 +55,12 @@ uint32_t serial_handler_credit_available(void);
 
 void serial_wait_for_completion(void);
 
-bool serial_handler_event_send(serial_evt_t* evt);
+bool serial_handler_event_send(serial_evt_t *evt);
 
-bool serial_handler_command_get(serial_cmd_t* evt);
+bool serial_handler_command_get(serial_cmd_t *evt);
 
-
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _SERIAL_HANDLER_H__ */

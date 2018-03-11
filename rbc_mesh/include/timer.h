@@ -8,7 +8,8 @@ are permitted provided that the following conditions are met:
   1. Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
 
-  2. Redistributions in binary form must reproduce the above copyright notice, this
+  2. Redistributions in binary form must reproduce the above copyright notice,
+this
   list of conditions and the following disclaimer in the documentation and/or
   other materials provided with the distribution.
 
@@ -29,33 +30,42 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************/
 #ifndef TIMER_H__
 #define TIMER_H__
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
 * @defgroup TIMER HF Timer module abstraction.
-* Allocates timers and schedules PPI signals in PPI channels 8-10. Can also do callbacks at timeout.
+* Allocates timers and schedules PPI signals in PPI channels 8-10. Can also do
+* callbacks at timeout.
 */
 
 /** First channel to use for timer PPI triggering */
-#define TIMER_PPI_CH_START  (8)
+#define TIMER_PPI_CH_START (8)
 /** Invalid timestamp */
 #define TIMER_TIMEOUT_INVALID (0xFFFFFFFF)
 
 /** Timer index for end of timeslot timing */
-#define TIMER_INDEX_TS_END      (0)
+#define TIMER_INDEX_TS_END (0)
 /** Timer index for scheduler timing */
-#define TIMER_INDEX_SCHEDULER   (1)
+#define TIMER_INDEX_SCHEDULER (1)
 /** Timer index for radio timing */
-#define TIMER_INDEX_RADIO       (2)
+#define TIMER_INDEX_RADIO (2)
 /** Timer index for getting timestamps */
-#define TIMER_INDEX_TIMESTAMP   (3)
+#define TIMER_INDEX_TIMESTAMP (3)
 
 /** Get timestamp - ref, including rollover. */
-#define TIMER_DIFF(timestamp, reference) ((uint32_t)(timestamp-reference) > UINT32_MAX / 2 ? (uint32_t)(reference-timestamp) : (uint32_t)(timestamp-reference))
+#define TIMER_DIFF(timestamp, reference)                                       \
+  ((uint32_t)(timestamp - reference) > UINT32_MAX / 2                          \
+       ? (uint32_t)(reference - timestamp)                                     \
+       : (uint32_t)(timestamp - reference))
 
 /** Check whether the given time is older than the reference */
-#define TIMER_OLDER_THAN(time, ref) (((uint32_t) (time)) - ((uint32_t) (ref)) > UINT32_MAX / 2)
+#define TIMER_OLDER_THAN(time, ref)                                            \
+  (((uint32_t)(time)) - ((uint32_t)(ref)) > UINT32_MAX / 2)
 
 /** Timestamp type for all time-values */
 typedef uint32_t timestamp_t;
@@ -63,15 +73,18 @@ typedef uint32_t timestamp_t;
 /**
  * Attribute bitfield fields to apply to a timer callback.
  */
-typedef enum
-{
-    TIMER_ATTR_NONE             = 0x00, /**< No special attributes. */
-    TIMER_ATTR_TIMESLOT_LOCAL   = 0x01, /**< The timer should not be transferred to the next timeslot if it fails to fire within the current timeslot. */
-    TIMER_ATTR_SYNCHRONOUS      = 0x02, /**< The timer callback should be executed in TIMER0-IRQ context. Only applies to timers with callbacks. */
+typedef enum {
+  TIMER_ATTR_NONE = 0x00,           /**< No special attributes. */
+  TIMER_ATTR_TIMESLOT_LOCAL = 0x01, /**< The timer should not be transferred to
+                                       the next timeslot if it fails to fire
+                                       within the current timeslot. */
+  TIMER_ATTR_SYNCHRONOUS = 0x02, /**< The timer callback should be executed in
+                                    TIMER0-IRQ context. Only applies to timers
+                                    with callbacks. */
 } timer_attr_t;
 
 /** Callback type for callbacks at finished timers */
-typedef void(*timer_callback_t)(timestamp_t timestamp);
+typedef void (*timer_callback_t)(timestamp_t timestamp);
 
 /** Hardware event handler, should be called at all TIMER0 events. */
 void timer_event_handler(void);
@@ -79,54 +92,59 @@ void timer_event_handler(void);
 /**
  * Order a timer with callback.
  *
- * @param[in] timer Timer index to register timeout on. Overrides any previous timeout on this index.
+ * @param[in] timer Timer index to register timeout on. Overrides any previous
+ * timeout on this index.
  * @param[in] time Timestamp at which the action should trigger.
- * @param[in] callback Function pointer to the callback function called when the timer triggers.
- * @param[in] attributes Timer attributes to apply to the timer event. May be used as a bitfield.
+ * @param[in] callback Function pointer to the callback function called when the
+ * timer triggers.
+ * @param[in] attributes Timer attributes to apply to the timer event. May be
+ * used as a bitfield.
  *
  * @return NRF_SUCCESS The callback was successfully scheduled.
  * @return NRF_ERROR_INVALID_FLAGS The supplied attributes were invalid.
- * @return NRF_ERROR_INVALID_PARAM The timer parameter was outside the range of the timer capture registers.
+ * @return NRF_ERROR_INVALID_PARAM The timer parameter was outside the range of
+ * the timer capture registers.
  */
-uint32_t timer_order_cb(uint8_t timer,
-                        timestamp_t time,
-                        timer_callback_t callback,
-                        timer_attr_t attributes);
+uint32_t timer_order_cb(uint8_t timer, timestamp_t time,
+                        timer_callback_t callback, timer_attr_t attributes);
 
 /**
  * Order a timer with callback and a PPI task.
  *
- * @param[in] timer Timer index to register timeout on. Overrides any previous timeout on this index.
+ * @param[in] timer Timer index to register timeout on. Overrides any previous
+ * timeout on this index.
  * @param[in] time Timestamp at which the action should trigger.
- * @param[in] callback Function pointer to the callback function called when the timer triggers.
+ * @param[in] callback Function pointer to the callback function called when the
+ * timer triggers.
  * @param[in] p_task PPI task to trigger when the timer expires.
- * @param[in] attributes Timer attributes to apply to the timer event. May be used as a bitfield.
+ * @param[in] attributes Timer attributes to apply to the timer event. May be
+ * used as a bitfield.
  *
  * @return NRF_SUCCESS The callback and PPI task were successfully scheduled.
  * @return NRF_ERROR_INVALID_FLAGS The supplied attributes were invalid.
- * @return NRF_ERROR_INVALID_PARAM The timer parameter was outside the range of the timer capture registers.
+ * @return NRF_ERROR_INVALID_PARAM The timer parameter was outside the range of
+ * the timer capture registers.
  */
-uint32_t timer_order_cb_ppi(uint8_t timer,
-                            timestamp_t time,
-                            timer_callback_t callback,
-                            uint32_t* p_task,
+uint32_t timer_order_cb_ppi(uint8_t timer, timestamp_t time,
+                            timer_callback_t callback, uint32_t *p_task,
                             timer_attr_t attributes);
 
 /**
  * Order a timer with a PPI task.
  *
- * @param[in] timer Timer index to register timeout on. Overrides any previous timeout on this index.
+ * @param[in] timer Timer index to register timeout on. Overrides any previous
+ * timeout on this index.
  * @param[in] time Timestamp at which the action should trigger.
  * @param[in] p_task PPI task to trigger when the timer expires.
- * @param[in] attributes Timer attributes to apply to the timer event. May be used as a bitfield.
+ * @param[in] attributes Timer attributes to apply to the timer event. May be
+ * used as a bitfield.
  *
  * @return NRF_SUCCESS The PPI task was successfully scheduled.
  * @return NRF_ERROR_INVALID_FLAGS The supplied attributes were invalid.
- * @return NRF_ERROR_INVALID_PARAM The timer parameter was outside the range of the timer capture registers.
+ * @return NRF_ERROR_INVALID_PARAM The timer parameter was outside the range of
+ * the timer capture registers.
  */
-uint32_t timer_order_ppi(uint8_t timer,
-                         timestamp_t time,
-                         uint32_t* p_task,
+uint32_t timer_order_ppi(uint8_t timer, timestamp_t time, uint32_t *p_task,
                          timer_attr_t attributes);
 
 /**
@@ -135,7 +153,8 @@ uint32_t timer_order_ppi(uint8_t timer,
  * @param[in] timer Index to abort.
  *
  * @return NRF_SUCCESS The timer was successfully aborted.
- * @return NRF_ERROR_INVALID_PARAM The timer parameter was outside the range of the timer capture registers.
+ * @return NRF_ERROR_INVALID_PARAM The timer parameter was outside the range of
+ * the timer capture registers.
  * @return NRF_ERROR_NOT_FOUND The given timer wasn't scheduled.
  */
 uint32_t timer_abort(uint8_t timer);
@@ -166,5 +185,9 @@ void timer_on_ts_begin(timestamp_t timeslot_start_time);
 *            timeslot.
 */
 void timer_on_ts_end(timestamp_t timeslot_end_time);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* TIMER_H__ */

@@ -1,5 +1,7 @@
-_build
+_build*
 *.pyc
 *.log
 *.log~
 .ipynb_checkpoints
+.gdb_history
+data

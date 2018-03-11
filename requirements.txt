@@ -2,3 +2,4 @@ ipython
 pyyaml
 sensei_client
 pyserial
+redis

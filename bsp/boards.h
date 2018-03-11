@@ -14,42 +14,16 @@
 
 #include "nrf_gpio.h"
 
-#if defined(BOARD_NRF6310)
-  #include "nrf6310.h"
-#elif defined(BOARD_PCA10000)
-  #include "pca10000.h"
-#elif defined(BOARD_PCA10001)
-  #include "pca10001.h"
-#elif defined(BOARD_PCA10002)
-  #include "pca10000.h"
-#elif defined(BOARD_PCA10003)
-  #include "pca10003.h"
-#elif defined(BOARD_PCA20006)
-  #include "pca20006.h"
-#elif defined(BOARD_PCA10028)
-  #include "pca10028.h"
-#elif defined(BOARD_PCA10031)
-  #include "pca10031.h"
-#elif defined(BOARD_PCA10036)
-  #include "pca10036.h"
-#elif defined(BOARD_PCA10040)
+#if defined(BOARD_PCA10040)
   #include "pca10040.h"
-#elif defined(BOARD_WT51822)
-  #include "wt51822.h"
-#elif defined(BOARD_N5DK1)
-  #include "n5_starterkit.h"
-#elif defined (BOARD_D52DK1)
-  #include "d52_starterkit.h"
-#elif defined (BOARD_ARDUINO_PRIMO)
-  #include "arduino_primo.h"
-#elif defined (BOARD_SENSEI)
-  #include "board_sensei.h"
 #elif defined(BOARD_SHOE_SENSOR)
   #include "shoe_sensor.h"
 #elif defined(BOARD_LESSON_TRACKER)
   #include "lesson_tracker.h"
-#elif defined(BOARD_RFD77201)
-  #include "rfd77201.h"
+#elif defined(BOARD_SHOE_SENSORv2)
+  #include "shoe_sensor_nrf52.h"
+#elif defined(BOARD_LESSON_TRACKERv2)
+  #include "lesson_tracker_nrf52.h"
 #else
 #error "Board is not defined"
 
