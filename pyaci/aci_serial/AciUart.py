@@ -10,7 +10,7 @@ from aci import AciEvent, AciCommand
 
 logging.getLogger(__name__)
 
-EVENT_QUEUE_BUFFER_MAX_SIZE = 100
+EVENT_QUEUE_BUFFER_MAX_SIZE = 500
 
 class AciDevice(object):
     def __init__(self, device_name):
