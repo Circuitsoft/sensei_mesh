@@ -18,6 +18,7 @@ import os.path
 from redis import Redis
 from datetime_modulo import datetime, dt
 from datetime import timedelta
+import pytz
 import struct
 
 root = logging.getLogger()
@@ -57,16 +58,18 @@ class MeshControlManager(object):
 
         new_sleep_time = self.sleep_time
         if isinstance(sleep_time, dt.datetime):
-            sleep_time -= datetime(1970,1,1)
-            sleep_time = sleep_time.total_seconds() + time.timezone
+            if sleep_time.tzinfo is None:
+                sleep_time = sleep_time.replace(tzinfo=pytz.utc)
+            sleep_time = sleep_time.timestamp()
         if sleep_time is not None:
             sleep_time = int(sleep_time)
             new_sleep_time = sleep_time
 
         new_wake_time = self.wake_time
         if isinstance(wake_time, dt.datetime):
-            wake_time -= datetime(1970,1,1)
-            wake_time = wake_time.total_seconds() + time.timezone
+            if wake_time.tzinfo is None:
+                wake_time = wake_time.replace(tzinfo=pytz.utc)
+            wake_time = wake_time.timestamp()
         if wake_time is not None:
             wake_time = int(wake_time)
             new_wake_time = wake_time
@@ -115,11 +118,13 @@ class ScheduleManager(object):
             return day_sched
 
         self.schedule = [calc_sched(d) for d in range(7)]
+        self.timezone = open('/etc/timezone').read().strip()
+        self.timezone = pytz.timezone(self.timezone)
 
     def get_next_sleep(self):
         if self.schedule == [None]*7:
             return 0
-        sleep_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        sleep_day = datetime.now().replace(tzinfo=self.timezone, hour=0, minute=0, second=0, microsecond=0)
         sched = None
         while True:
             sched = self.schedule[sleep_day.weekday()]
@@ -132,7 +137,7 @@ class ScheduleManager(object):
     def get_next_wake(self):
         if self.schedule == [None]*7:
             return 0
-        wake_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(1)
+        wake_day = datetime.now().replace(tzinfo=self.timezone, hour=0, minute=0, second=0, microsecond=0) + timedelta(1)
         sched = None
         while True:
             sched = self.schedule[wake_day.weekday()]
