@@ -19,6 +19,7 @@ from redis import Redis
 from datetime_modulo import datetime, dt
 from datetime import timedelta
 import pytz
+import tzlocal
 import struct
 
 root = logging.getLogger()
@@ -118,8 +119,7 @@ class ScheduleManager(object):
             return day_sched
 
         self.schedule = [calc_sched(d) for d in range(7)]
-        self.timezone = open('/etc/timezone').read().strip()
-        self.timezone = pytz.timezone(self.timezone)
+        self.timezone = tzlocal.get_localzone()
 
     def get_next_sleep(self):
         if self.schedule == [None]*7:

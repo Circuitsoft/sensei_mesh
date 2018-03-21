@@ -4,3 +4,4 @@ sensei_client
 pyserial
 redis
 pytz
+tzlocal
