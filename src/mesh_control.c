@@ -42,7 +42,7 @@ void mesh_control_update_config(mesh_control_t *new_config) {
   }
 
   bool tx_allowed = false;
-  for (int i = 0; i < sizeof(allowed_tx_power) / sizeof(rbc_mesh_txpower_t);
+  for (int i = 0; i < sizeof(allowed_tx_power) / sizeof(*allowed_tx_power);
        i++) {
     if (allowed_tx_power[i] == new_config->hb_tx_power) {
       tx_allowed = true;

@@ -54,13 +54,13 @@ void proximity_add_entry(uint8_t sensor_id, uint8_t rssi) {
 }
 
 void proximity_values_reset() {
-  memset(rssi_sorted, 0, sizeof(uint8_t) * MAX_PROXIMITY_TRACKING_COUNT);
-  memset(sensor_ids_sorted, 0, sizeof(uint8_t) * MAX_PROXIMITY_TRACKING_COUNT);
+  memset(rssi_sorted, 0, sizeof(*rssi_sorted) * MAX_PROXIMITY_TRACKING_COUNT);
+  memset(sensor_ids_sorted, 0, sizeof(*sensor_ids_sorted) * MAX_PROXIMITY_TRACKING_COUNT);
 }
 
 uint8_t proximity_get_strongest_signals(uint8_t *sensor_ids, uint8_t *rssi_values, uint8_t output_array_size) {
   uint8_t n = MAX_PROXIMITY_TRACKING_COUNT > output_array_size ? output_array_size : MAX_PROXIMITY_TRACKING_COUNT;
-  memcpy(sensor_ids, sensor_ids_sorted, sizeof(uint8_t) * n);
-  memcpy(rssi_values, rssi_sorted, sizeof(uint8_t) * n);
+  memcpy(sensor_ids, sensor_ids_sorted, sizeof(*sensor_ids) * n);
+  memcpy(rssi_values, rssi_sorted, sizeof(*rssi_values) * n);
   return n;
 }

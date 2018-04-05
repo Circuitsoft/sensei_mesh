@@ -41,7 +41,7 @@ void sensor_warmup_event() {
 
 void gather_sensor_data() {
   float voltage;
-  memset(&m_value, 0, sizeof(sensor_value_t));
+  memset(&m_value, 0, sizeof(m_value));
   m_value.valid_time = get_clock_time();
   {
       handle_info_t mesh_control_info;
@@ -92,7 +92,7 @@ void report_sensor_data() {
     gather_sensor_data();
     error_code =
         rbc_mesh_value_set(SENSOR_HANDLE(Config.GetSensorID()),
-                           (uint8_t *)&m_value, sizeof(sensor_value_t));
+                           (uint8_t *)&m_value, sizeof(m_value));
     APP_ERROR_CHECK(error_code);
   } else {
     // Would be nice to report this somewhere.

@@ -205,7 +205,7 @@ bool Config_t::loadIfNotLoaded() {
     // No settings in flash. Write some.
     log("Writing blank settings");
     write(reinterpret_cast<uint8_t *>(&backing_struct),
-          sizeof(app_config_t) / 4);
+          sizeof(backing_struct) / 4);
   }
 
   loaded = true;
@@ -217,7 +217,7 @@ bool Config_t::save() {
   // Since our backing struct doesn't move around, we can just queue up this
   // update (without waiting for the callback to fire)
   auto ret = update(reinterpret_cast<uint8_t *>(&backing_struct),
-                    sizeof(app_config_t) / 4);
+                    sizeof(backing_struct) / 4);
   APP_ASSERT_EQUAL(ret, NRF_SUCCESS, "Config.save() unsuccessful");
   return ret == NRF_SUCCESS;
 }
