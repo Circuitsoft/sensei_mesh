@@ -115,7 +115,7 @@ static void delay_to_sleep() {
   uint32_t current_counter;
   uint32_t err_code;
   current_counter = app_timer_cnt_get();
-  uint32_t elapsed_ticks_since_second_start = current_counter - m_clock_second_start_counter_value;
+  uint32_t elapsed_ticks_since_second_start = (current_counter - m_clock_second_start_counter_value) & ((1<<24)-1);
   int32_t delay_ticks =  APP_TIMER_TICKS(TOTAL_RADIO_WINDOW_MS, APP_TIMER_PRESCALER) - elapsed_ticks_since_second_start;
   if (delay_ticks > 5) {
     logf("delay to sleep: %d ticks", delay_ticks);
