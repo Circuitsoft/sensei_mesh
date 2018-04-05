@@ -12,17 +12,14 @@ class Monitor(object):
         subscribe_results = self.pubsub.get_message()
 
     def run(self):
-
-        while True:
-            message = self.pubsub.get_message()
-            if message:
-                status = json.loads(message['data'].decode("utf-8"))
-                now = datetime.now()
-                line = "%s: %d total" % (now, len(status))
-                for sensor_id, age in status.items():
-                    if age > 1:
-                        line += " %s:%d" % (sensor_id, age)
-                print(line)
+	for message in self.pubsub.listen():
+	    status = json.loads(message['data'].decode("utf-8"))
+	    now = datetime.now()
+	    line = "%s: %d total" % (now, len(status))
+	    for sensor_id, age in status.items():
+		if age > 1:
+		    line += " %s:%d" % (sensor_id, age)
+	    print(line)
 
 
 if __name__ == '__main__':
