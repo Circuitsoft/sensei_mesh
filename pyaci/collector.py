@@ -163,12 +163,14 @@ class Collector(object):
         self.restart_serial()
         self.classroom_id = sensei_config["classroom_id"]
         self.sensor_updates = []
+        self.processed_sensor_updates = []
         self.radio_obs = []
         self.accelerometer_obs = []
         self.redis = Redis()
         self.last_published_period = None
         self.mcm = MeshControlManager(self.set_value)
         self.schm = ScheduleManager(sensei_config.get("schedule"))
+        self.sensor_ages = {}
 
     def handle_heartbeat(self, hb):
         if hb.epoch_seconds != hb.received_at:
@@ -292,7 +294,15 @@ class Collector(object):
                 event_time = datetime.utcfromtimestamp(update.valid_time)
                 evt = AccelerometerEvent(self.classroom_id, update.sensor_id, event_time, 'jostle')
                 self.publish_accelerometer_event(evt)
+        self.processed_sensor_updates.extend(self.sensor_updates)
         self.sensor_updates = []
+
+    def update_network_status(self):
+        for sensor_id, age in self.sensor_ages.items():
+            self.sensor_ages[sensor_id] = age + 1
+        for update in self.processed_sensor_updates:
+            self.sensor_ages[update.sensor_id] = 0
+        self.redis.publish('sensor_status', json.dumps(self.sensor_ages))
 
     def run(self):
         # Wait for serial connection to be ready
@@ -318,6 +328,8 @@ class Collector(object):
                 self.publish_accelerometer_observations(current_collection_period)
                 self.last_published_period = current_collection_period
                 self.mcm.handle_new_collection_period()
+                self.update_network_status()
+                self.processed_sensor_updates = []
                 self.aci.WriteData(AciCommand.AciValueGet(
                     handle=256+MOTHERNODE_ID).serialize())
 
