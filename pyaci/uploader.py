@@ -6,7 +6,7 @@ import time
 import sensei_cmd
 from sensei import *
 import datetime
-import yaml
+import senseiconf
 from os.path import expanduser
 import os.path
 import json
@@ -23,6 +23,7 @@ class Uploader(object):
         self.classroom_id = sensei_config["classroom_id"]
         self.redis = redis.Redis()
         self.processing_suffix = "_in_process"
+        self.schm = senseiconf.ScheduleManager(sensei_config)
 
     def upload_radio_observations(self, obs_data):
         if obs_data == None:
@@ -73,9 +74,12 @@ class Uploader(object):
         while True:
             try:
                 handled_count = 0
-                for (queue_name, handler) in queues.items():
-                    if self.dequeue(queue_name, handler, check_for_in_process_data):
-                        handled_count += 1
+                if self.schm.live_now():
+                    for (queue_name, handler) in queues.items():
+                        if self.dequeue(queue_name, handler, check_for_in_process_data):
+                            handled_count += 1
+                else:
+                    print("Not live now... sleeping")
                 check_for_in_process_data = False
                 if handled_count == 0:
                     print("No data available... sleeping")
@@ -102,15 +106,12 @@ if __name__ == '__main__':
                         help="Dry run. Do not actually upload anything")
     options = parser.parse_args()
 
-    config_path = options.config or expanduser("~") + "/.sensei.yaml"
-    if os.path.isfile(config_path):
-        with open(config_path, 'r') as stream:
-            try:
-                sensei_config = yaml.load(stream)
-                uploader = Uploader(sensei_config, options)
-                uploader.run()
-            except yaml.YAMLError as exc:
-                print(exc)
-    else:
-        print(str.format("Please configure settings in %s" %(config_path)))
+    config_path = options.config
+    config = senseiconf.Config(options.config)
+    try:
+        config['server']
+        uploader = Uploader(config, options)
+        uploader.run()
+    except KeyError:
+        print("Please configure settings in", options.config)
         exit(-1)

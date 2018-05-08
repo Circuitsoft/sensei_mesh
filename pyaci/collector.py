@@ -12,14 +12,13 @@ import time
 import sensei_cmd
 from sensei import *
 import json
-import yaml
+import senseiconf
 from os.path import expanduser
 import os.path
 from redis import Redis
 from datetime_modulo import datetime, dt
 from datetime import timedelta
 import pytz
-import tzlocal
 import struct
 
 root = logging.getLogger()
@@ -104,49 +103,6 @@ class MeshControlManager(object):
     def handle_new_collection_period(self):
         self.sent_yet = False
 
-class ScheduleManager(object):
-    def __init__(self, schedule):
-        if schedule is None:
-            # Default schedule is 9-5 weekdays
-            schedule = ['9-17']*5 + ['']*2
-        def calc_sched(day_idx):
-            days = "mon", "tue", "wed", "thu", "fri", "sat", "sun"
-            # If day isn't defined, 9-5. If defined and empty, not on that day
-            day_sched = schedule.get(days[day_idx], '9-17')
-            if not day_sched:
-                return None
-            day_sched = [int(x) for x in day_sched.split('-')]
-            return day_sched
-
-        self.schedule = [calc_sched(d) for d in range(7)]
-        self.timezone = tzlocal.get_localzone()
-
-    def get_next_sleep(self):
-        if self.schedule == [None]*7:
-            return 0
-        sleep_day = datetime.now().replace(tzinfo=self.timezone, hour=0, minute=0, second=0, microsecond=0)
-        sched = None
-        while True:
-            sched = self.schedule[sleep_day.weekday()]
-            if sched is None:
-                sleep_day -= timedelta(1)
-            else:
-                break
-        return sleep_day.replace(hour=sched[1])
-
-    def get_next_wake(self):
-        if self.schedule == [None]*7:
-            return 0
-        wake_day = datetime.now().replace(tzinfo=self.timezone, hour=0, minute=0, second=0, microsecond=0) + timedelta(1)
-        sched = None
-        while True:
-            sched = self.schedule[wake_day.weekday()]
-            if sched is None:
-                wake_day += timedelta(1)
-            else:
-                break
-        return wake_day.replace(hour=sched[0])
-
 class Collector(object):
     # Synchronize once every minute
     TIME_SYNC_INTERVAL = 60
@@ -169,7 +125,7 @@ class Collector(object):
         self.redis = Redis()
         self.last_published_period = None
         self.mcm = MeshControlManager(self.set_value)
-        self.schm = ScheduleManager(sensei_config.get("schedule"))
+        self.schm = senseiconf.ScheduleManager(sensei_config)
         self.sensor_ages = {}
 
     def handle_heartbeat(self, hb):
@@ -352,15 +308,13 @@ if __name__ == '__main__':
                         help="Dry run. Do not actually upload anything")
     options = parser.parse_args()
 
-    config_path = options.config or expanduser("~") + "/.sensei.yaml"
-    if os.path.isfile(config_path):
-        with open(config_path, 'r') as stream:
-            try:
-                sensei_config = yaml.load(stream)
-                collector = Collector(sensei_config, options)
-                collector.run()
-            except yaml.YAMLError as exc:
-                print(exc)
-    else:
-        print(str.format("Please configure settings in %s" %(config_path)))
+    config_path = options.config
+    config = senseiconf.Config(options.config)
+    try:
+        config['classroom_id']
+        config['mesh_network']
+        collector = Collector(config, options)
+        collector.run()
+    except KeyError:
+        print("Please configure settings in", options.config)
         exit(-1)

@@ -1,0 +1,3 @@
+[submodule "pyaci/senseiconf"]
+	path = pyaci/senseiconf
+	url = ../sensei_config
