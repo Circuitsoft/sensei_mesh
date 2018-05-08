@@ -248,7 +248,7 @@ void set_clock_time(int32_t epoch, uint16_t ms, clock_source_t clock_source, int
 
 int32_t get_clock_ms() {
   uint32_t current_counter = app_timer_cnt_get();
-  return TICKS_TO_MS(current_counter - m_clock_second_start_counter_value);
+  return TICKS_TO_MS((current_counter - m_clock_second_start_counter_value) & ((1<<24)-1));
 }
 
 int32_t get_clock_time() {
