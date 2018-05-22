@@ -29,6 +29,7 @@ static scheduler_state_t m_scheduler_state;
 static bool m_sleep_enabled = true;
 static prng_t m_rand;
 static uint32_t m_clock_second_start_counter_value;
+static bool m_clock_valid = false;
 
 #define TICKS_TO_MS(TICKS) (100 * (TICKS) / TICKS_PER_100ms)
 
@@ -61,7 +62,7 @@ static void periodic_timer_cb(void * p_context)
   DBG_TICK_PIN(6);
 
 #if defined(BOARD_SHOE_SENSORv2)
-  if (mesh_control_should_sleep(m_current_time))
+  if (m_clock_valid && mesh_control_should_sleep(m_current_time))
       return;
 #endif
 
@@ -193,6 +194,7 @@ void scheduler_init(bool sleep_enabled) {
 
   log("scheduler_init");
   m_sleep_enabled = sleep_enabled;
+  m_clock_valid = false;
   rand_prng_seed(&m_rand);
   m_scheduler_state = SCHEDULER_STATE_STOPPED;
   APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, NULL);
@@ -244,6 +246,7 @@ void set_clock_time(int32_t epoch, uint16_t ms, clock_source_t clock_source, int
   }
   logf("setting_clock_time: ms=%d", ms);
   start_clock(1000 - (ms % 1000));
+  m_clock_valid = true;
 }
 
 int32_t get_clock_ms() {
