@@ -1,5 +1,3 @@
-#ifdef NRF52
-
 #define DISABLE_LOGGING_IN_FILE
 
 #include "app_error.h"
@@ -85,7 +83,3 @@ void i2c_shutdown() {
   nrf_drv_twi_disable(&twi);
   nrf_drv_twi_uninit(&twi);
 }
-
-/*lint --flb "Leave library region" */
-
-#endif // NRF52

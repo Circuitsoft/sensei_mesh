@@ -11,7 +11,6 @@ extern "C" {
 #include "handle_storage.h"
 }
 #include "scheduler.h"
-#include "shoe_accel.h"
 #include <app_error.h>
 #include <string.h>
 
@@ -19,9 +18,6 @@ static sensor_value_t m_value;
 
 void sensor_init() {
   log("sensor_init");
-#ifdef ACCEL_ADXL337
-  shoe_accel_init();
-#endif
 
   // This is always called, even if JOSTLE_DETECT is not defined,
   // as it will shut off unused modules to save power.
@@ -34,9 +30,6 @@ void sensor_init() {
 }
 
 void sensor_warmup_event() {
-#ifdef ACCEL_ADXL337
-  enable_shoe_accel();
-#endif
 }
 
 void gather_sensor_data() {
@@ -72,17 +65,9 @@ void gather_sensor_data() {
   }
 #endif
 
-#ifdef ACCEL_ADXL337
-  read_shoe_accel(&m_value.accel_x, &m_value.accel_y, &m_value.accel_z);
-#endif
-
   proximity_get_strongest_signals(m_value.proximity_ids, m_value.proximity_rssi,
                                   MAX_PROXIMITY_TRACKING_COUNT);
   proximity_values_reset();
-
-#ifdef ACCEL_ADXL337
-  disable_shoe_accel();
-#endif
 }
 
 void report_sensor_data() {

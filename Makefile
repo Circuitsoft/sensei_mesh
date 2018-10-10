@@ -4,22 +4,14 @@
 # Selectable build options
 #------------------------------------------------------------------------------
 
-#TARGET_BOARD         ?= BOARD_RFD77201
 #TARGET_BOARD         ?= BOARD_LESSON_TRACKERv2
 TARGET_BOARD         ?= BOARD_SHOE_SENSORv2
-
-SOC_FAMILY           = nRF52
-#SOC_FAMILY           = Simblee
 
 USE_DFU              ?= no
 
 ifeq ($(shell uname),Linux)
-	RFD_LOADER    = $(SIMBLEE_BASE)/RFDLoader_linux
-	ARDUINO_BASE  = $(HOME)/.arduino15
 	SERIAL_PORT   = /dev/ttyUSB0
 else
-	RFD_LOADER    = $(SIMBLEE_BASE)/RFDLoader_osx
-	ARDUINO_BASE  = $(HOME)/Library/Arduino15
 	#SERIAL_PORT  = /dev/cu.usbserial-DN00CSZ7  # left
 	SERIAL_PORT   = /dev/cu.usbserial-DN00D34P  # right
 	#SERIAL_PORT  = /dev/cu.usbserial-A105RB12
@@ -27,12 +19,8 @@ else
 	#SERIAL_PORT  = /dev/cu.usbserial-DO00C2G2  # Breadboard setup
 endif
 
-# TODO: Pretty sure we can run everything on SDK 12. Try it!
-NRF51_SDK_BASE       = ../nRF51_SDK_8.1.0_b6ed55f
-NRF52_SDK_BASE       = ../nRF5_SDK_12.3.0_d7731ad
-SIMBLEE_BASE  = $(ARDUINO_BASE)/packages/Simblee/hardware/Simblee/1.1.2
+NRF5_SDK_BASE       = ../nRF5_SDK_12.3.0_d7731ad
 
-NRF51_SOFTDEVICE_HEX = $(COMPONENTS)/softdevice/s130/hex/s130_softdevice.hex
 NRF52_SOFTDEVICE_HEX = $(COMPONENTS)/softdevice/s132/hex/s132_nrf52_3.0.0_softdevice.hex
 
 GNU_INSTALL_ROOT := /usr/local
@@ -43,71 +31,9 @@ GNU_PREFIX = arm-none-eabi
 # Define relative paths to SDK components
 #------------------------------------------------------------------------------
 
-ifeq ($(SOC_FAMILY),Simblee)
-$(info Building for Simblee)
-
-SDK_BASE      = $(NRF51_SDK_BASE)
-COMPONENTS    = $(SDK_BASE)/components
-
-LINKER_SCRIPT = $(SIMBLEE_BASE)/variants/Simblee/linker_scripts/gcc/Simblee.ld
-
-CXX_SOURCE_FILES += $(SIMBLEE_BASE)/libraries/SimbleeBLE/SimbleeBLE.cpp
-CXX_SOURCE_FILES += $(SIMBLEE_BASE)/variants/Simblee/variant.cpp
-
-C_SOURCE_FILES += $(COMPONENTS)/toolchain/system_nrf51.c
-C_SOURCE_FILES += src/i2c.nrf51.c
-
-INC_BOTH += -I$(SIMBLEE_BASE)/cores/arduino
-INC_BOTH += -I$(SIMBLEE_BASE)/system/Simblee
-INC_BOTH += -I$(SIMBLEE_BASE)/variants/Simblee
-INC_PATHS += -I$(COMPONENTS)/softdevice/s110/headers
-CXX_INC_PATHS += -I$(SIMBLEE_BASE)/system/Simblee/include
-CXX_INC_PATHS += -I$(SIMBLEE_BASE)/system/CMSIS/CMSIS/Include
-
-INC_PATHS += -I$(COMPONENTS)/drivers_nrf/twi_master/incubated/
-C_SOURCE_FILES += $(COMPONENTS)/drivers_nrf/twi_master/incubated/twi_hw_master.c
-
-INC_BOTH += -I$(COMPONENTS)/drivers_nrf/adc
-INC_BOTH += -I$(COMPONENTS)/libraries/pstorage
-
-INC_BOTH += -I$(COMPONENTS)/softdevice/s110/headers
-
-LDFLAGS += -L$(SIMBLEE_BASE)/variants/Simblee
-LIBS += -lSimbleeSystem -lSimblee -lSimbleeBLE -lSimbleeGZLL -lSimbleeForMobile -lSimbleeCOM
-
-CFLAGS += -D NRF51
-CFLAGS += -D S110
-CFLAGS += -mcpu=cortex-m0
-CFLAGS += -mfloat-abi=soft
-
-CXXFLAGS += -MMD -mcpu=cortex-m0 -DF_CPU=16000000
-CXXFLAGS += -DARDUINO=10801 -D__Simblee__
-
-LDFLAGS += -mcpu=cortex-m0
-
-ASMFLAGS += -D NRF51
-ASMFLAGS += -D S110
-
-# TODO: Replace this proprietary blob with Arduino-nRF5 or remove
-ARDUINO_CORE = arduino_core/core.a
-
-# Detect OS and use correct RFD Loader
-ifeq ($(detected_OS),Windows)
-    RFD_LOADER 		= $(SIMBLEE_BASE)/RFDLoader.exe
-endif
-ifeq ($(detected_OS),Darwin)  # Mac OS X
-    RFD_LOADER 		= $(SIMBLEE_BASE)/RFDLoader_osx
-endif
-ifeq ($(detected_OS),Linux)
-    RFD_LOADER 		= $(SIMBLEE_BASE)/RFDLoader_linux
-endif
-
-endif
-
-ifeq ($(SOC_FAMILY),nRF52)
 $(info Building for nRF52)
 
-SDK_BASE      = $(NRF52_SDK_BASE)
+SDK_BASE      = $(NRF5_SDK_BASE)
 SDK_VERSION   = $(word 1,$(subst ., ,$(word 3,$(subst _, ,$(SDK_BASE)))))
 COMPONENTS    = $(SDK_BASE)/components
 LINKER_SCRIPT := src/nrf52832.ld
@@ -115,7 +41,7 @@ LINKER_SCRIPT := src/nrf52832.ld
 ASM_SOURCE_FILES  += $(COMPONENTS)/toolchain/gcc/gcc_startup_nrf52.S
 
 C_SOURCE_FILES += $(COMPONENTS)/toolchain/system_nrf52.c
-C_SOURCE_FILES += src/i2c.nrf52.c
+C_SOURCE_FILES += src/i2c.c
 
 #INC_PATHS += -I$(SIMBLEE_BASE)/cores/arduino
 #CXX_INC_PATHS += -I$(SIMBLEE_BASE)/cores/arduino
@@ -173,18 +99,9 @@ LDFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # Use NFC pins as IO
 COMMON_FLAGS += -DCONFIG_NFCT_PINS_AS_GPIOS
 
-endif # SOC_FAMILY
-
-# TODO: Add nRF51 build for SD130
-
 TEMPLATE_PATH = $(COMPONENTS)/toolchain/gcc
 RBC_MESH      = rbc_mesh
 
-# TODO: This is hardcoded on - any reason to keep this flag?
-ifeq ($(USE_RBC_MESH_SERIAL), yes)
-  SERIAL_STRING = _serial
-#	CFLAGS += -DRBC_MESH_SERIAL
-endif
 COMMON_FLAGS += -DRBC_MESH_SERIAL=1 #-DBSP_SIMPLE
 
 
@@ -202,7 +119,7 @@ else
   BUILD_TYPE ?= release
 endif
 
-OUTPUT_NAME = rbc_mesh$(SERIAL_STRING)$(DFU_STRING)_$(TARGET_BOARD)_$(SOC_FAMILY)_$(BUILD_TYPE)
+OUTPUT_NAME = rbc_mesh$(SERIAL_STRING)$(DFU_STRING)_$(TARGET_BOARD)_$(BUILD_TYPE)
 
 #------------------------------------------------------------------------------
 # Proceed cautiously beyond this point.  Little should change.
@@ -210,9 +127,6 @@ OUTPUT_NAME = rbc_mesh$(SERIAL_STRING)$(DFU_STRING)_$(TARGET_BOARD)_$(SOC_FAMILY
 
 export OUTPUT_NAME
 export GNU_INSTALL_ROOT
-
-MAKEFILE_NAME = $(MAKEFILE_LIST)
-MAKEFILE_DIR = $(dir $(MAKEFILE_NAME) )
 
 # echo suspend
 ifeq ($(VERBOSE),1)
@@ -237,15 +151,13 @@ CP       = cp
 GENDAT   = ./gen_dat
 GENZIP   = zip
 
-BUILDMETRICS  = ./buildmetrics.py
-
 # function for removing duplicates in a list
 remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-out $(firstword $1),$1))))
 
 # source common to all targets
 
-C_SOURCE_FILES += src/proximity.c src/battery.c src/shoe_accel.c src/power_manage.c \
-	src/app_evt.c src/mesh_control.c bsp/bsp.c src/jostle_detect_mma8451.c \
+C_SOURCE_FILES += src/proximity.c src/battery.c src/power_manage.c \
+	src/app_evt.c src/mesh_control.c bsp/bsp.c \
 	src/jostle_detect_bmx055.c src/rtc.c src/app_timer.c
 CXX_SOURCE_FILES += src/config.cpp src/main.cpp src/sensor.cpp src/app_cmd.cpp \
 	src/scheduler.cpp src/heartbeat.cpp
@@ -469,18 +381,12 @@ echosize: $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_NAME).elf
 	$(NO_ECHO)$(SIZE) $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_NAME).elf
 	-@echo ""
 
-# Flash Simblee devices
-.PHONY: install_simblee
-install_simblee: $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_NAME).hex
-	@echo Installing: $(OUTPUT_NAME).hex
-	$(NO_ECHO)$(RFD_LOADER) $(SERIAL_PORT) $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_NAME).hex
-
 # Flash nRF52 devices (incl SoftDevice; eg for production)
 .PHONY: install_nordic_full
 install_nordic_full: $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_NAME)_merged.hex
 	@echo Installing: $(OUTPUT_NAME)_merged.hex
-	$(NO_ECHO)nrfjprog --program $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_NAME)_merged.hex --verify --chiperase -f NRF52 $(JLINK_SERIAL_NUMBER)
-	$(NO_ECHO)nrfjprog -r -f NRF52 $(JLINK_SERIAL_NUMBER)
+	$(NO_ECHO)nrfjprog --program $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_NAME)_merged.hex --verify --chiperase -f nRF52 $(JLINK_SERIAL_NUMBER)
+	$(NO_ECHO)nrfjprog -r -f nRF52 $(JLINK_SERIAL_NUMBER)
 
 # Flash nrf52 softdevice
 .PHONY: flash_softdevice
@@ -493,8 +399,8 @@ flash_softdevice:
 .PHONY: install_nordic
 install_nordic: $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_NAME).hex
 	@echo Installing: $(OUTPUT_NAME).hex
-	$(NO_ECHO)nrfjprog --program $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_NAME).hex --verify --sectorerase -f NRF52 $(JLINK_SERIAL_NUMBER)
-	$(NO_ECHO)nrfjprog -r -f NRF52 $(JLINK_SERIAL_NUMBER)
+	$(NO_ECHO)nrfjprog --program $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_NAME).hex --verify --sectorerase -f nRF52 $(JLINK_SERIAL_NUMBER)
+	$(NO_ECHO)nrfjprog -r -f nRF52 $(JLINK_SERIAL_NUMBER)
 
 # Clean
 .PHONY: clean
@@ -510,14 +416,7 @@ cleanobj:
 .PHONY: configure
 configure:
 	./pyaci/configure_sensor.py $(SENSOR_CONFIGURATION_OPTIONS) -d $(SERIAL_PORT) $(SENSOR_ID)
-	$(NO_ECHO)nrfjprog -r -f NRF52 $(JLINK_SERIAL_NUMBER)
-
-# High level commands
-.PHONY: nrf51
-nrf51: all install_nordic_NRF51 configure
-
-.PHONY: simblee
-simblee: all install_simblee configure
+	$(NO_ECHO)nrfjprog -r -f nRF52 $(JLINK_SERIAL_NUMBER)
 
 .DEFAULT_GOAL=nrf52
 .PHONY: nrf52
@@ -526,9 +425,9 @@ nrf52: all install_nordic configure
 # Reset the device
 .PHONY: reset
 reset:
-	nrfjprog --reset -f $(SOC_FAMILY) $(JLINK_SERIAL_NUMBER)
+	nrfjprog --reset -f nRF52 $(JLINK_SERIAL_NUMBER)
 
 # Erase the device
 .PHONY: erase
 erase:
-	nrfjprog --eraseall -f $(SOC_FAMILY) $(JLINK_SERIAL_NUMBER)
+	nrfjprog --eraseall -f nRF52 $(JLINK_SERIAL_NUMBER)

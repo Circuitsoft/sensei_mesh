@@ -16,10 +16,6 @@
 
 #if defined(BOARD_PCA10040)
   #include "pca10040.h"
-#elif defined(BOARD_SHOE_SENSOR)
-  #include "shoe_sensor.h"
-#elif defined(BOARD_LESSON_TRACKER)
-  #include "lesson_tracker.h"
 #elif defined(BOARD_SHOE_SENSORv2)
   #include "shoe_sensor_nrf52.h"
 #elif defined(BOARD_LESSON_TRACKERv2)
