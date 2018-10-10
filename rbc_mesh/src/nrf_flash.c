@@ -68,7 +68,7 @@ void nrf_flash_erase(uint32_t *page_address, uint32_t size) {
     while (NRF_NVMC->READY == NVMC_READY_READY_Busy) {
       // Do nothing.
     }
-    page_address += NRF_FLASH_PAGE_SIZE / sizeof(uint32_t *);
+    page_address += NRF_FLASH_PAGE_SIZE / sizeof(*page_address);
   }
 }
 

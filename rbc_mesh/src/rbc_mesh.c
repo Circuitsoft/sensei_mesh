@@ -152,9 +152,9 @@ uint32_t rbc_mesh_init(rbc_mesh_init_params_t init_params)
 
     m_mesh_state = MESH_STATE_RUNNING;
 
-    m_rbc_event_fifo.array_len = RBC_MESH_APP_EVENT_QUEUE_LENGTH;
+    m_rbc_event_fifo.array_len = sizeof(m_rbc_event_buffer) / sizeof(m_rbc_event_buffer[0]);
     m_rbc_event_fifo.elem_array = m_rbc_event_buffer;
-    m_rbc_event_fifo.elem_size = sizeof(rbc_mesh_event_t);
+    m_rbc_event_fifo.elem_size = sizeof(m_rbc_event_buffer[0]);
     m_rbc_event_fifo.memcpy_fptr = NULL;
     fifo_init(&m_rbc_event_fifo);
     timeslot_resume();

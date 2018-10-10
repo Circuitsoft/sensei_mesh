@@ -329,7 +329,7 @@ uint32_t handle_storage_info_get(uint16_t handle, handle_info_t* p_info)
     {
         return NRF_ERROR_NULL;
     }
-    memset(p_info, 0, sizeof(handle_info_t));
+    memset(p_info, 0, sizeof(*p_info));
     if (handle == RBC_MESH_INVALID_HANDLE)
     {
         return NRF_ERROR_INVALID_ADDR;

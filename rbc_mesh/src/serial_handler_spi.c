@@ -233,7 +233,7 @@ void spi_event_handler(spi_slave_evt_t evt)
 
                     /* notify ACI handler */
                     async_event_t async_evt;
-                    memset(&async_evt, 0, sizeof(async_event_t));
+                    memset(&async_evt, 0, sizeof(async_evt));
                     async_evt.callback.generic.cb = mesh_aci_command_check_cb;
                     async_evt.type = EVENT_TYPE_GENERIC;
                     event_handler_push(&async_evt);
@@ -279,14 +279,14 @@ void serial_handler_init(void)
 {
     has_pending_tx = false;
     /* init packet queues */
-    tx_fifo.array_len = SERIAL_QUEUE_SIZE;
+    tx_fifo.array_len = sizeof(tx_fifo_buffer) / sizeof(tx_fifo_buffer[0]);
     tx_fifo.elem_array = tx_fifo_buffer;
-    tx_fifo.elem_size = sizeof(serial_data_t);
+    tx_fifo.elem_size = sizeof(tx_fifo_buffer[0]);
     tx_fifo.memcpy_fptr = NULL;
     fifo_init(&tx_fifo);
-    rx_fifo.array_len = SERIAL_QUEUE_SIZE;
+    rx_fifo.array_len = sizeof(rx_fifo_buffer) / sizeof(rx_fifo_buffer[0]);
     rx_fifo.elem_array = rx_fifo_buffer;
-    rx_fifo.elem_size = sizeof(serial_data_t);
+    rx_fifo.elem_size = sizeof(rx_fifo_buffer[0]);
     rx_fifo.memcpy_fptr = NULL;
     fifo_init(&rx_fifo);
 

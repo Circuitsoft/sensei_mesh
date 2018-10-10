@@ -177,16 +177,16 @@ void event_handler_init(void)
     }
     /* init event queues */
   
-     g_async_evt_fifo.array_len =RBC_MESH_INTERNAL_EVENT_QUEUE_LENGTH ;
+    g_async_evt_fifo.array_len = sizeof(g_async_evt_fifo_buffer) / sizeof(g_async_evt_fifo_buffer[0]);
     g_async_evt_fifo.elem_array = g_async_evt_fifo_buffer;
-    g_async_evt_fifo.elem_size = sizeof(async_event_t);
+    g_async_evt_fifo.elem_size = sizeof(g_async_evt_fifo_buffer[0]);
     g_async_evt_fifo.memcpy_fptr = NULL;
     fifo_init(&g_async_evt_fifo);
 
  
-    g_async_evt_fifo_ts.array_len = RBC_MESH_INTERNAL_EVENT_QUEUE_LENGTH; 
+    g_async_evt_fifo_ts.array_len = sizeof(g_async_evt_fifo_buffer_ts) / sizeof(g_async_evt_fifo_buffer_ts[0]);; 
     g_async_evt_fifo_ts.elem_array = g_async_evt_fifo_buffer_ts;
-    g_async_evt_fifo_ts.elem_size = sizeof(async_event_t);
+    g_async_evt_fifo_ts.elem_size = sizeof(g_async_evt_fifo_buffer_ts[0]);
     g_async_evt_fifo_ts.memcpy_fptr = NULL;
     fifo_init(&g_async_evt_fifo_ts);
 

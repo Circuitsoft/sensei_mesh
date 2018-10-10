@@ -71,13 +71,13 @@ void fwid_union_cpy(fwid_union_t* p_dst, fwid_union_t* p_src, dfu_type_t dfu_typ
     switch (dfu_type)
     {
         case DFU_TYPE_APP:
-            memcpy(&p_dst->app, &p_src->app, sizeof(app_id_t));
+            memcpy(&p_dst->app, &p_src->app, sizeof(p_dst->app));
             break;
         case DFU_TYPE_SD:
             p_dst->sd = p_src->sd;
             break;
         case DFU_TYPE_BOOTLOADER:
-            memcpy(&p_dst->bootloader, &p_src->bootloader, sizeof(bl_id_t));
+            memcpy(&p_dst->bootloader, &p_src->bootloader, sizeof(p_dst->bootloader));
             break;
         default: break;
     }
@@ -90,13 +90,13 @@ bool fwid_union_cmp(fwid_union_t* p_a, fwid_union_t* p_b, dfu_type_t dfu_type)
         case DFU_TYPE_APP:
             return memcmp(&p_a->app,
                           &p_b->app,
-                          sizeof(app_id_t)) == 0;
+                          sizeof(p_a->app)) == 0;
         case DFU_TYPE_SD:
             return (p_a->sd == p_b->sd);
         case DFU_TYPE_BOOTLOADER:
             return memcmp(&p_a->bootloader,
                           &p_b->bootloader,
-                          sizeof(bl_id_t)) == 0;
+                          sizeof(p_a->bootloader)) == 0;
         default: return false;
     }
 }

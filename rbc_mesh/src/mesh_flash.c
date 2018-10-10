@@ -278,8 +278,8 @@ uint32_t mesh_flash_init(mesh_flash_op_cb_t cb) {
     return NRF_ERROR_NULL;
   }
   m_flash_op_fifo.elem_array = m_flash_op_fifo_queue;
-  m_flash_op_fifo.elem_size = sizeof(operation_t);
-  m_flash_op_fifo.array_len = FLASH_OP_QUEUE_LEN;
+  m_flash_op_fifo.elem_size = sizeof(m_flash_op_fifo_queue[0]);
+  m_flash_op_fifo.array_len = sizeof(m_flash_op_fifo_queue) / sizeof(m_flash_op_fifo_queue[0]);
   fifo_init(&m_flash_op_fifo);
   mp_cb = cb;
   m_curr_op.type = FLASH_OP_TYPE_NONE;
@@ -315,7 +315,7 @@ uint32_t mesh_flash_op_push(flash_op_type_t type, const flash_op_t *p_op) {
 
   operation_t op;
   op.type = type;
-  memcpy(&op.operation, p_op, sizeof(flash_op_t));
+  memcpy(&op.operation, p_op, sizeof(*p_op));
   return fifo_push(&m_flash_op_fifo, &op);
 }
 

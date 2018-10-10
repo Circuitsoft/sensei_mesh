@@ -296,7 +296,7 @@ uint32_t tc_tx(mesh_packet_t* p_packet, const tc_tx_config_t* p_config)
     TICK_PIN(PIN_MESH_TX);
     /* queue the packet for transmission */
     radio_event_t event;
-    memset(&event, 0, sizeof(radio_event_t));
+    memset(&event, 0, sizeof(event));
 
     /* clean packet header before sending */
     p_packet->header._rfu1 = 0;

@@ -228,9 +228,9 @@ void radio_init(radio_idle_cb_t idle_cb,
     if (m_radio_state == RADIO_STATE_NEVER_USED)
     {
         /* this flushes the queue */
-        m_radio_fifo.array_len = RBC_MESH_RADIO_QUEUE_LENGTH;
+        m_radio_fifo.array_len = sizeof(m_radio_fifo_queue) / sizeof(m_radio_fifo_queue[0]);
         m_radio_fifo.elem_array = m_radio_fifo_queue;
-        m_radio_fifo.elem_size = sizeof(radio_event_t);
+        m_radio_fifo.elem_size = sizeof(m_radio_fifo_queue[0]);
         m_radio_fifo.memcpy_fptr = NULL;
         fifo_init(&m_radio_fifo);
     }

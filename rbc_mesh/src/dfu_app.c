@@ -166,7 +166,7 @@ static void tx_timeout(uint32_t timestamp, void *p_context) {
             m_tx_slots[i].tx_count = 0;
           } else if (m_tx_slots[i].tx_count >= m_tx_slots[i].repeats) {
             mesh_packet_ref_count_dec(m_tx_slots[i].p_packet);
-            memset(&m_tx_slots[i], 0, sizeof(dfu_tx_t));
+            memset(&m_tx_slots[i], 0, sizeof(m_tx_slots[0]));
           }
           timeout = next_tx_timeout(&m_tx_slots[i]);
         }
@@ -194,7 +194,7 @@ static void abort_timeout(uint32_t timestamp, void *p_context) {
   evt.params.dfu.end.role = m_transfer_state.role;
   evt.params.dfu.end.fwid = m_transfer_state.fwid;
   evt.params.dfu.end.end_reason = DFU_END_ERROR_TIMEOUT;
-  memset(&m_transfer_state, 0, sizeof(dfu_transfer_state_t));
+  memset(&m_transfer_state, 0, sizeof(m_transfer_state));
   rbc_mesh_event_push(&evt);
 }
 
@@ -356,7 +356,7 @@ uint32_t dfu_request(dfu_type_t type, fwid_union_t *p_fwid,
   uint32_t status = dfu_cmd_send(&cmd);
   if (status == NRF_SUCCESS) {
     m_transfer_state.type = type;
-    memcpy(&m_transfer_state.fwid, p_fwid, sizeof(fwid_union_t));
+    memcpy(&m_transfer_state.fwid, p_fwid, sizeof(*p_fwid));
     m_transfer_state.state = DFU_STATE_DFU_REQ;
     m_transfer_state.role = DFU_ROLE_TARGET;
     m_transfer_state.data_progress = 0;
@@ -376,7 +376,7 @@ uint32_t dfu_relay(dfu_type_t type, fwid_union_t *p_fwid) {
   uint32_t status = dfu_cmd_send(&cmd);
   if (status == NRF_SUCCESS) {
     m_transfer_state.type = type;
-    memcpy(&m_transfer_state.fwid, p_fwid, sizeof(fwid_union_t));
+    memcpy(&m_transfer_state.fwid, p_fwid, sizeof(*p_fwid));
     m_transfer_state.state = DFU_STATE_READY;
     m_transfer_state.role = DFU_ROLE_RELAY;
     m_transfer_state.data_progress = 0;
@@ -389,7 +389,7 @@ uint32_t dfu_abort(void) {
   cmd.type = BL_CMD_TYPE_DFU_ABORT;
   uint32_t error_code = dfu_cmd_send(&cmd);
   if (error_code == NRF_SUCCESS) {
-    memset(&m_transfer_state, 0, sizeof(dfu_transfer_state_t));
+    memset(&m_transfer_state, 0, sizeof(m_transfer_state));
   }
   return error_code;
 }
@@ -420,7 +420,7 @@ uint32_t dfu_state_get(dfu_transfer_state_t *p_dfu_transfer_state) {
   if (m_transfer_state.role == DFU_ROLE_NONE) {
     return NRF_ERROR_INVALID_STATE;
   }
-  memcpy(p_dfu_transfer_state, &m_transfer_state, sizeof(dfu_transfer_state_t));
+  memcpy(p_dfu_transfer_state, &m_transfer_state, sizeof(m_transfer_state));
   return NRF_SUCCESS;
 }
 
@@ -451,7 +451,7 @@ uint32_t dfu_evt_handler(bl_evt_t *p_evt) {
     evt.params.dfu.end.role = m_transfer_state.role;
     evt.params.dfu.end.fwid = m_transfer_state.fwid;
     evt.params.dfu.end.end_reason = p_evt->params.dfu.abort.reason;
-    memset(&m_transfer_state, 0, sizeof(dfu_transfer_state_t));
+    memset(&m_transfer_state, 0, sizeof(m_transfer_state));
     rbc_mesh_event_push(&evt);
   } break;
 
@@ -521,7 +521,7 @@ uint32_t dfu_evt_handler(bl_evt_t *p_evt) {
     evt.params.dfu.end.fwid = p_evt->params.dfu.end.fwid;
     evt.params.dfu.end.end_reason = DFU_END_SUCCESS;
     evt.params.dfu.end.role = p_evt->params.dfu.end.role;
-    memset(&m_transfer_state, 0, sizeof(dfu_transfer_state_t));
+    memset(&m_transfer_state, 0, sizeof(m_transfer_state));
     rbc_mesh_event_push(&evt);
     timer_sch_abort(&m_timer_evt);
   } break;

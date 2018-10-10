@@ -153,7 +153,7 @@ static void serial_command_handler(serial_cmd_t *p_serial_cmd) {
     serial_evt.params.cmd_rsp.command_opcode = p_serial_cmd->opcode;
     serial_evt.length = 3;
 
-    if (p_serial_cmd->length != sizeof(serial_cmd_params_init_t) + 1) {
+    if (p_serial_cmd->length != sizeof(p_serial_cmd->init) + sizeof(p_serial_cmd->opcode)) {
       serial_evt.params.cmd_rsp.status = ACI_STATUS_ERROR_INVALID_LENGTH;
       error_code = NRF_ERROR_INVALID_LENGTH;
     } else {
@@ -216,9 +216,9 @@ static void serial_command_handler(serial_cmd_t *p_serial_cmd) {
     mesh_packet_t *p_packet;
     if (mesh_packet_acquire(&p_packet)) {
       const uint8_t data_len =
-          p_serial_cmd->length - 1 - sizeof(rbc_mesh_value_handle_t);
+          p_serial_cmd->length - sizeof(p_serial_cmd->params.value_set.handle) - sizeof(p_serial_cmd->opcode);
 
-      if (p_serial_cmd->length > sizeof(serial_cmd_params_value_set_t) + 1) {
+      if (p_serial_cmd->length > sizeof(p_serial_cmd->value_set) + sizeof(p_serial_cmd->opcode)) {
         serial_evt.params.cmd_rsp.status = ACI_STATUS_ERROR_INVALID_LENGTH;
         error_code = NRF_ERROR_INVALID_LENGTH;
       } else {
@@ -258,7 +258,7 @@ static void serial_command_handler(serial_cmd_t *p_serial_cmd) {
     serial_evt.params.cmd_rsp.command_opcode = p_serial_cmd->opcode;
     serial_evt.length = 3;
 
-    if (p_serial_cmd->length != sizeof(serial_cmd_params_value_enable_t) + 1) {
+    if (p_serial_cmd->length != sizeof(p_serial_cmd->params.value_enable) + sizeof(p_serial_cmd->opcode)) {
       serial_evt.params.cmd_rsp.status = ACI_STATUS_ERROR_INVALID_LENGTH;
     } else {
       error_code =
@@ -275,11 +275,11 @@ static void serial_command_handler(serial_cmd_t *p_serial_cmd) {
     serial_evt.params.cmd_rsp.command_opcode = p_serial_cmd->opcode;
     serial_evt.length = 3;
 
-    if (p_serial_cmd->length != sizeof(serial_cmd_params_value_disable_t) + 1) {
+    if (p_serial_cmd->length != sizeof(p_serial_cmd->params.value_disable) + sizeof(p_serial_cmd->opcode)) {
       serial_evt.params.cmd_rsp.status = ACI_STATUS_ERROR_INVALID_LENGTH;
     } else {
       error_code =
-          rbc_mesh_value_disable(p_serial_cmd->params.value_enable.handle);
+          rbc_mesh_value_disable(p_serial_cmd->params.value_disable.handle);
 
       serial_evt.params.cmd_rsp.status = error_code_translate(error_code);
     }
@@ -294,7 +294,7 @@ static void serial_command_handler(serial_cmd_t *p_serial_cmd) {
         RBC_MESH_VALUE_MAX_LEN; /* signal to the framework that we can fit the
                                    entire payload in our buffer */
 
-    if (p_serial_cmd->length != sizeof(serial_cmd_params_value_get_t) + 1) {
+    if (p_serial_cmd->length != sizeof(p_serial_cmd->params.value_get) + sizeof(p_serial_cmd->opcode)) {
       serial_evt.params.cmd_rsp.status = ACI_STATUS_ERROR_INVALID_LENGTH;
     } else {
       error_code =
@@ -391,7 +391,7 @@ static void serial_command_handler(serial_cmd_t *p_serial_cmd) {
     serial_evt.params.cmd_rsp.command_opcode = p_serial_cmd->opcode;
     serial_evt.length = 3;
 
-    if (p_serial_cmd->length != sizeof(serial_cmd_params_flag_set_t) + 1) {
+    if (p_serial_cmd->length != sizeof(p_serial_cmd->params.flag_set) + sizeof(p_serial_cmd->opcode)) {
       serial_evt.params.cmd_rsp.status = ACI_STATUS_ERROR_INVALID_LENGTH;
     } else {
       switch ((aci_flag_t)p_serial_cmd->params.flag_set.flag) {
@@ -428,7 +428,7 @@ static void serial_command_handler(serial_cmd_t *p_serial_cmd) {
     serial_evt.params.cmd_rsp.command_opcode = p_serial_cmd->opcode;
     serial_evt.length = 7;
 
-    if (p_serial_cmd->length != sizeof(serial_cmd_params_flag_get_t) + 1) {
+    if (p_serial_cmd->length != sizeof(p_serial_cmd->params.flag_set) + sizeof(p_serial_cmd->opcode)) {
       serial_evt.params.cmd_rsp.status = ACI_STATUS_ERROR_INVALID_LENGTH;
     } else {
       bool flag_status = false;

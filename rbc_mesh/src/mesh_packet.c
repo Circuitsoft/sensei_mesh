@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "app_error.h"
 #include <string.h>
 
-#define PACKET_INDEX(p_packet) ((((uint32_t) p_packet) - ((uint32_t) &g_packet_pool[0])) / sizeof(mesh_packet_t))
+#define PACKET_INDEX(p_packet) ((((uint32_t) p_packet) - ((uint32_t) &g_packet_pool[0])) / sizeof(g_packet_pool[0]))
 /******************************************************************************
 * Static globals
 ******************************************************************************/
@@ -302,7 +302,7 @@ void mesh_packet_take_ownership(mesh_packet_t* p_packet)
 
 mesh_packet_t* mesh_packet_get_start_pointer(void* p_content)
 {
-    uint32_t index = ((((uint32_t) p_content) - ((uint32_t) &g_packet_pool[0])) / sizeof(mesh_packet_t));
+    uint32_t index = PACKET_INDEX(p_content);
     if (index < RBC_MESH_PACKET_POOL_SIZE)
     {
         return &g_packet_pool[index];

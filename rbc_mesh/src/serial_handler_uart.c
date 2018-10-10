@@ -224,14 +224,14 @@ void UART0_IRQHandler(void)
 void serial_handler_init(void)
 {
     /* init packet queues */
-    m_tx_fifo.array_len = SERIAL_QUEUE_SIZE;
+    m_tx_fifo.array_len = sizeof(m_tx_fifo_buffer) / sizeof(m_tx_fifo_buffer[0]);
     m_tx_fifo.elem_array = m_tx_fifo_buffer;
-    m_tx_fifo.elem_size = sizeof(serial_data_t);
+    m_tx_fifo.elem_size = sizeof(m_tx_fifo_buffer[0]);
     m_tx_fifo.memcpy_fptr = NULL;
     fifo_init(&m_tx_fifo);
-    m_rx_fifo.array_len = SERIAL_QUEUE_SIZE;
+    m_rx_fifo.array_len = sizeof(m_rx_fifo_buffer) / sizeof(m_rx_fifo_buffer[0]);
     m_rx_fifo.elem_array = m_rx_fifo_buffer;
-    m_rx_fifo.elem_size = sizeof(serial_data_t);
+    m_rx_fifo.elem_size = sizeof(m_rx_fifo_buffer[0]);
     m_rx_fifo.memcpy_fptr = NULL;
     fifo_init(&m_rx_fifo);
 
